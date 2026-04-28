@@ -2,20 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lo-Fi MIDI Machine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a1c">
+    <title>Lo-Fi Auto-Machine</title>
+    <!-- Dynamic PWA Manifest -->
+    <link rel="manifest" id="manifest">
     <style>
         :root {
-            --bg: #1a1a1c;
-            --machine: #242428;
+            --bg: #111113;
+            --machine: #222226;
             --machine-border: #35353a;
             --text: #e0e0e0;
             --accent-red: #e74c3c;
             --accent-red-glow: #ff4757;
+            --accent-blue: #3498db;
             --screen-bg: #050505;
             --screen-text: #00ff41;
-            --pad-black: #1a1a1a;
-            --pad-lit: #e74c3c;
+            --pad-black: #18181a;
             --knob-bg: #333;
             --knob-ind: #fff;
         }
@@ -25,24 +30,26 @@
             color: var(--text);
             font-family: 'Arial', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
-            user-select: none;
+            overflow-y: auto;
             -webkit-user-select: none;
+            user-select: none;
         }
 
         .machine {
             background: var(--machine);
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.05);
             width: 100%;
-            max-width: 650px;
+            max-width: 700px;
             border: 2px solid var(--machine-border);
-            border-bottom: 8px solid #111; /* Chunky base */
+            border-bottom: 8px solid #0a0a0a;
+            margin-bottom: 40px;
         }
 
         /* Top Screen / Share Bar */
@@ -50,16 +57,18 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         input[type="text"] {
             flex: 1;
+            min-width: 200px;
             padding: 12px;
             background: var(--screen-bg);
             border: 2px solid #222;
             color: var(--screen-text);
             font-family: 'Courier New', monospace;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             border-radius: 6px;
             text-align: center;
@@ -71,19 +80,29 @@
             background: var(--knob-bg);
             color: #fff;
             border: 2px solid #222;
-            padding: 0 20px;
+            padding: 12px 20px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             box-shadow: 0 4px 0 #111;
+            transition: 0.1s;
+            flex-shrink: 0;
         }
         .btn:active { transform: translateY(4px); box-shadow: 0 0 0 #111; }
 
+        .btn-toggle.active {
+            background: var(--accent-blue);
+            box-shadow: 0 4px 0 #1c5985;
+            border-color: #5dade2;
+            text-shadow: 0 0 5px #fff;
+        }
+
         /* Big Knobs & Displays */
         .macro-section {
-            display: flex;
-            gap: 20px;
-            background: #1e1e22;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            background: #1a1a1d;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -91,7 +110,6 @@
         }
 
         .macro-module {
-            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -105,8 +123,8 @@
             color: var(--accent-red-glow);
             font-family: 'Courier New', monospace;
             font-weight: bold;
-            font-size: 1rem;
-            padding: 8px;
+            font-size: 0.85rem;
+            padding: 8px 4px;
             width: 100%;
             text-align: center;
             border-radius: 4px;
@@ -114,37 +132,32 @@
             box-shadow: inset 0 0 10px rgba(255, 71, 87, 0.2);
             text-shadow: 0 0 5px rgba(255, 71, 87, 0.8);
             box-sizing: border-box;
-            height: 38px;
+            height: 36px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Rotary Knob Component */
-        .knob-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
+        .knob-container { display: flex; flex-direction: column; align-items: center; gap: 5px; }
         
         .knob {
-            width: 60px;
-            height: 60px;
+            width: 60px; height: 60px;
             border-radius: 50%;
             background: linear-gradient(145deg, #3a3a40, #25252a);
             box-shadow: 0 8px 10px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.1);
             position: relative;
-            cursor: ns-resize; /* Up/down drag cursor */
+            cursor: ns-resize;
             border: 2px solid #111;
+            touch-action: none; /* Prevents scrolling when touching the knob */
         }
 
         .knob-indicator {
-            width: 4px;
-            height: 50%;
+            width: 4px; height: 50%;
             background: var(--knob-ind);
             position: absolute;
-            left: 50%;
-            top: 0;
+            left: 50%; top: 0;
             transform-origin: bottom center;
-            transform: translateX(-50%) rotate(-135deg); /* Min value */
             border-radius: 2px;
             box-shadow: 0 0 5px rgba(255,255,255,0.5);
             pointer-events: none;
@@ -152,101 +165,63 @@
 
         .knob-small { width: 45px; height: 45px; }
 
-        /* Chord Tabs */
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-
+        /* Tabs & Pads */
+        .tabs { display: flex; gap: 5px; margin-bottom: 5px; overflow-x: auto; padding-bottom: 5px; }
         .tab {
-            flex: 1;
-            background: #2a2a30;
-            color: #888;
-            padding: 8px;
-            text-align: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-            border-radius: 6px 6px 0 0;
-            cursor: pointer;
-            border: 1px solid #333;
-            border-bottom: none;
+            flex: 1; min-width: 80px;
+            background: #2a2a30; color: #888;
+            padding: 10px; text-align: center;
+            font-size: 0.75rem; font-weight: bold;
+            border-radius: 6px 6px 0 0; cursor: pointer;
+            border: 1px solid #333; border-bottom: none;
         }
+        .tab.active { background: #1a1a1d; color: var(--accent-red); border-top: 2px solid var(--accent-red); }
 
-        .tab.active {
-            background: #1e1e22;
-            color: var(--accent-red);
-            border-top: 2px solid var(--accent-red);
-        }
-
-        /* Hardware Pads */
         .pad-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            background: #1e1e22;
-            padding: 15px;
-            border-radius: 0 0 8px 8px;
-            border: 1px solid #333;
-            border-top: none;
+            gap: 10px; background: #1a1a1d; padding: 15px;
+            border-radius: 0 0 8px 8px; border: 1px solid #333; border-top: none;
         }
 
         .pad {
-            aspect-ratio: 1.3;
-            background: var(--pad-black);
-            border: 2px solid #111;
-            border-radius: 4px;
-            color: #666;
-            font-weight: bold;
-            font-size: 0.9rem;
-            cursor: pointer;
+            aspect-ratio: 1.3; background: var(--pad-black);
+            border: 2px solid #111; border-radius: 4px;
+            color: #666; font-weight: bold; font-size: 0.85rem;
+            cursor: pointer; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
             box-shadow: inset 0 2px 5px rgba(255,255,255,0.05), 0 5px 0 #0a0a0a;
-            transition: 0.05s;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            touch-action: manipulation;
         }
-
-        .pad span { font-size: 0.65rem; color: #444; margin-top: 4px; }
-
+        .pad span { font-size: 0.6rem; color: #444; margin-top: 4px; }
         .pad:active, .pad.active {
             box-shadow: inset 0 2px 15px rgba(231, 76, 60, 0.4), 0 1px 0 #0a0a0a;
-            transform: translateY(4px);
-            color: #fff;
-            border-color: var(--accent-red);
+            transform: translateY(4px); color: #fff; border-color: var(--accent-red);
         }
-        
-        .pad:active span, .pad.active span { color: #aaa; }
 
         /* Bottom Mix / Play Section */
         .bottom-section {
-            display: flex;
-            margin-top: 20px;
-            gap: 20px;
-            align-items: center;
+            display: flex; flex-wrap: wrap; margin-top: 20px; gap: 20px; align-items: center;
         }
 
         .mix-knobs {
-            display: flex;
-            gap: 20px;
-            flex: 1;
+            display: flex; gap: 15px; flex: 1; justify-content: space-around;
+            background: #1a1a1d; padding: 10px; border-radius: 8px; border: 1px solid #333;
         }
 
         .play-btn {
-            background: var(--accent-red);
-            color: #fff;
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 6px 0 #a93226;
+            background: var(--accent-red); color: #fff;
+            font-size: 1.2rem; font-weight: bold;
+            padding: 15px 40px; border: none; border-radius: 6px;
+            cursor: pointer; box-shadow: 0 6px 0 #a93226; flex-grow: 1; text-align: center;
         }
         .play-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #a93226; }
         .play-btn.playing { background: #2ecc71; box-shadow: 0 6px 0 #229954; }
 
+        @media (max-width: 500px) {
+            .pad-grid { grid-template-columns: repeat(2, 1fr); }
+            .bottom-section { flex-direction: column; align-items: stretch; }
+        }
     </style>
 </head>
 <body>
@@ -254,44 +229,50 @@
 <div class="machine">
     <!-- Screen & Share -->
     <div class="header-bar">
-        <input type="text" id="seedInput" value="DREAM-M1-D1" onchange="parseSeedFromInput()">
+        <input type="text" id="seedInput" value="CHILL-M1-D1-P1" onchange="parseSeedFromInput()">
         <button class="btn" onclick="randomizeSeed()">🎲</button>
+        <button class="btn btn-toggle" id="autoDjBtn" onclick="toggleAutoDJ()">♾️ AUTO</button>
     </div>
 
     <!-- Big Digital Macro Knobs -->
     <div class="macro-section">
         <div class="macro-module">
-            <span class="macro-label">Melody Engine</span>
+            <span class="macro-label">Melody</span>
             <div class="digital-display" id="melDisplay">1: SPARSE</div>
             <div class="knob-container">
-                <div class="knob" id="knob-melody" data-min="1" data-max="4" data-val="1">
+                <div class="knob" id="knob-melody" data-min="1" data-max="8" data-val="1">
                     <div class="knob-indicator"></div>
                 </div>
             </div>
         </div>
         <div class="macro-module">
-            <span class="macro-label">Drum Groove</span>
+            <span class="macro-label">Drums</span>
             <div class="digital-display" id="drumDisplay">1: BOOM BAP</div>
             <div class="knob-container">
-                <div class="knob" id="knob-drum" data-min="1" data-max="4" data-val="1">
+                <div class="knob" id="knob-drum" data-min="1" data-max="8" data-val="1">
+                    <div class="knob-indicator"></div>
+                </div>
+            </div>
+        </div>
+        <div class="macro-module">
+            <span class="macro-label">Phrasing</span>
+            <div class="digital-display" id="phraseDisplay">1: ON GRID</div>
+            <div class="knob-container">
+                <div class="knob" id="knob-phrase" data-min="1" data-max="6" data-val="1">
                     <div class="knob-indicator"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Chord Tabs -->
+    <!-- Tabs & Pads -->
     <div class="tabs">
         <div class="tab active" onclick="setTab(0)">MINOR</div>
         <div class="tab" onclick="setTab(1)">MAJOR</div>
-        <div class="tab" onclick="setTab(2)">NEO-SOUL</div>
-        <div class="tab" onclick="setTab(3)">DARK/DIM</div>
+        <div class="tab" onclick="setTab(2)">SOUL</div>
+        <div class="tab" onclick="setTab(3)">DARK</div>
     </div>
-
-    <!-- Pads -->
-    <div class="pad-grid" id="padContainer">
-        <!-- Injected via JS -->
-    </div>
+    <div class="pad-grid" id="padContainer"></div>
 
     <!-- Bottom Controls -->
     <div class="bottom-section">
@@ -304,7 +285,13 @@
             </div>
             <div class="knob-container">
                 <span class="macro-label">Wobble</span>
-                <div class="knob knob-small" id="knob-wobble" data-min="0" data-max="100" data-val="40">
+                <div class="knob knob-small" id="knob-wobble" data-min="0" data-max="100" data-val="50">
+                    <div class="knob-indicator"></div>
+                </div>
+            </div>
+            <div class="knob-container">
+                <span class="macro-label">Speed</span>
+                <div class="knob knob-small" id="knob-speed" data-min="60" data-max="110" data-val="80">
                     <div class="knob-indicator"></div>
                 </div>
             </div>
@@ -314,312 +301,239 @@
 </div>
 
 <script>
-    // --- State & Settings ---
-    let audioCtx;
-    let isPlaying = false;
-    let timerID;
-    let rng = Math.random;
+    // --- PWA Manifest Setup ---
+    const manifest = {
+        name: "Lo-Fi Auto-Machine", short_name: "LoFi", start_url: ".", display: "standalone",
+        background_color: "#111113", theme_color: "#111113",
+        icons: [{ src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzIyMiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjIwIiBmaWxsPSIjZTc0YzNjIi8+PC9zdmc+", sizes: "192x192", type: "image/svg+xml" }]
+    };
+    document.getElementById('manifest').href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
+
+    // --- Core State ---
+    let audioCtx, isPlaying = false, timerID, rng = Math.random;
     
-    const bpm = 80;
-    const totalSteps = 256; // 16 bars
+    // 64 Bars = 1024 steps. At 80bpm, this is ~3.2 minutes of music.
+    const totalSteps = 1024; 
     let currentStep = 0, nextNoteTime = 0;
 
-    // Macro States
-    let currentMelodyType = 1;
-    let currentDrumType = 1;
-    let currentBaseSeed = "DREAM";
-    let activeChordOverride = null; // Holds notes array if pad is held/active
-    let activeTab = 0;
+    let currentMelodyType = 1, currentDrumType = 1, currentPhraseType = 1;
+    let currentBPM = 80;
+    let currentBaseSeed = "CHILL";
+    let activeChordOverride = null, activeTab = 0, isAutoDJ = false;
 
-    // Sequences
-    let seqKick = new Array(totalSteps).fill(0);
-    let seqSnare = new Array(totalSteps).fill(0);
-    let seqHat = new Array(totalSteps).fill(0);
-    let seqChords = new Array(totalSteps).fill(null);
-    let seqMelody = new Array(totalSteps).fill(null);
+    // Sequences (1024 length)
+    let seqKick = new Array(totalSteps).fill(0), seqSnare = new Array(totalSteps).fill(0), seqHat = new Array(totalSteps).fill(0);
+    let seqChords = new Array(totalSteps).fill(null), seqMelody = new Array(totalSteps).fill(null);
 
     // DSP Nodes
     let masterGain, tapeDelay, lowpass, crackleGain, lfoGain;
     let noiseBuffer;
 
-    // --- Music Theory Data ---
+    // --- Music Theory ---
     const C3 = 48;
     const chordBanks = [
-        // Tab 0: Minor (Melancholy)
-        [
-            { n: "Cm9", v: [C3, C3+3, C3+7, C3+10, C3+14] },
-            { n: "Fm9", v: [C3+5, C3+8, C3+12, C3+15, C3+19] },
-            { n: "Gm7", v: [C3+7, C3+10, C3+14, C3+17] },
-            { n: "EbMaj9", v: [C3+3, C3+7, C3+10, C3+14, C3+17] },
-            { n: "AbMaj9", v: [C3+8, C3+12, C3+15, C3+19, C3+22] },
-            { n: "BbDom9", v: [C3+10, C3+14, C3+17, C3+20, C3+24] }
+        [ // Minor
+            { n: "Cm9", v: [C3, C3+3, C3+7, C3+10, C3+14] }, { n: "Fm9", v: [C3+5, C3+8, C3+12, C3+15, C3+19] },
+            { n: "Gm7", v: [C3+7, C3+10, C3+14, C3+17] }, { n: "EbMaj9", v: [C3+3, C3+7, C3+10, C3+14, C3+17] },
+            { n: "AbMaj9", v: [C3+8, C3+12, C3+15, C3+19, C3+22] }, { n: "BbDom9", v: [C3+10, C3+14, C3+17, C3+20, C3+24] }
         ],
-        // Tab 1: Major (Uplifting/Chill)
-        [
-            { n: "Cmaj9", v: [C3, C3+4, C3+7, C3+11, C3+14] },
-            { n: "Dm9", v: [C3+2, C3+5, C3+9, C3+12, C3+16] },
-            { n: "Em7", v: [C3+4, C3+7, C3+11, C3+14] },
-            { n: "Fmaj9", v: [C3+5, C3+9, C3+12, C3+16, C3+19] },
-            { n: "G13", v: [C3+7, C3+11, C3+14, C3+17, C3+21] },
-            { n: "Am9", v: [C3+9, C3+12, C3+16, C3+19, C3+23] }
+        [ // Major
+            { n: "Cmaj9", v: [C3, C3+4, C3+7, C3+11, C3+14] }, { n: "Dm9", v: [C3+2, C3+5, C3+9, C3+12, C3+16] },
+            { n: "Em7", v: [C3+4, C3+7, C3+11, C3+14] }, { n: "Fmaj9", v: [C3+5, C3+9, C3+12, C3+16, C3+19] },
+            { n: "G13", v: [C3+7, C3+11, C3+14, C3+17, C3+21] }, { n: "Am9", v: [C3+9, C3+12, C3+16, C3+19, C3+23] }
         ],
-        // Tab 2: Neo-Soul (Jazzy/Spicy)
-        [
-            { n: "Cm11", v: [C3, C3+3, C3+7, C3+10, C3+14, C3+17] },
-            { n: "DbMaj9", v: [C3+1, C3+5, C3+8, C3+12, C3+15] },
-            { n: "Ebmin9", v: [C3+3, C3+6, C3+10, C3+13, C3+17] },
-            { n: "Ab13", v: [C3-4, C3+2, C3+6, C3+9, C3+13] },
-            { n: "G7#5#9", v: [C3-5, C3+3, C3+6, C3+11, C3+14] },
-            { n: "Cm9", v: [C3, C3+3, C3+7, C3+10, C3+14] }
+        [ // Soul
+            { n: "Cm11", v: [C3, C3+3, C3+7, C3+10, C3+14, C3+17] }, { n: "DbMaj9", v: [C3+1, C3+5, C3+8, C3+12, C3+15] },
+            { n: "Ebmin9", v: [C3+3, C3+6, C3+10, C3+13, C3+17] }, { n: "Ab13", v: [C3-4, C3+2, C3+6, C3+9, C3+13] },
+            { n: "G7#5#9", v: [C3-5, C3+3, C3+6, C3+11, C3+14] }, { n: "Cm9", v: [C3, C3+3, C3+7, C3+10, C3+14] }
         ],
-        // Tab 3: Dark/Dim (Tension)
-        [
-            { n: "Cm(M7)", v: [C3, C3+3, C3+7, C3+11] },
-            { n: "Fdim7", v: [C3+5, C3+8, C3+11, C3+14] },
-            { n: "G7b9", v: [C3+7, C3+11, C3+14, C3+17, C3+20] },
-            { n: "Abm6", v: [C3+8, C3+11, C3+15, C3+17] },
-            { n: "Bdim7", v: [C3+11, C3+14, C3+17, C3+20] },
-            { n: "Cm9", v: [C3, C3+3, C3+7, C3+10, C3+14] }
+        [ // Dark
+            { n: "Cm(M7)", v: [C3, C3+3, C3+7, C3+11] }, { n: "Fdim7", v: [C3+5, C3+8, C3+11, C3+14] },
+            { n: "G7b9", v: [C3+7, C3+11, C3+14, C3+17, C3+20] }, { n: "Abm6", v: [C3+8, C3+11, C3+15, C3+17] },
+            { n: "Bdim7", v: [C3+11, C3+14, C3+17, C3+20] }, { n: "Cm9", v: [C3, C3+3, C3+7, C3+10, C3+14] }
         ]
     ];
 
-    const melNames = ["1: SPARSE", "2: ARPS", "3: LIKCS", "4: DREAMY"];
-    const drumNames = ["1: BOOM BAP", "2: MINIMAL", "3: BUSY", "4: HEAVY"];
+    const melNames = ["1: SPARSE", "2: ARPS", "3: LICKS", "4: DREAMY", "5: PLUCKS", "6: RUNS", "7: CASCADES", "8: CALL/RESP"];
+    const drumNames = ["1: BOOM BAP", "2: MINIMAL", "3: BUSY", "4: HEAVY", "5: DILLA SWING", "6: 4-ON-FLOOR", "7: BREAKS", "8: AMBIENT"];
+    const phraseNames = ["1: ON GRID", "2: SYNCO PUSH", "3: SPREAD OUT", "4: OFF STABS", "5: FLOW", "6: DRAGGING"];
 
-    // PRNG
     function cyrb128(str) {
         let h1=1779033703, h2=3144134277, h3=1013904242, h4=2773480762;
-        for(let i=0;i<str.length;i++){
-            let k=str.charCodeAt(i);
-            h1=h2^Math.imul(h1^k,597399067); h2=h3^Math.imul(h2^k,2869860233);
-            h3=h4^Math.imul(h3^k,951274213); h4=h1^Math.imul(h4^k,2716044179);
-        }
+        for(let i=0;i<str.length;i++){ let k=str.charCodeAt(i); h1=h2^Math.imul(h1^k,597399067); h2=h3^Math.imul(h2^k,2869860233); h3=h4^Math.imul(h3^k,951274213); h4=h1^Math.imul(h4^k,2716044179); }
         return (Math.imul(h3^(h1>>>18),597399067)^Math.imul(h4^(h2>>>22),2869860233))>>>0;
     }
-    function mulberry32(a) {
-        return function(){
-            var t=a+=0x6D2B79F5;
-            t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61);
-            return ((t^t>>>14)>>>0)/4294967296;
-        }
-    }
+    function mulberry32(a) { return function(){ var t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; } }
     function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
-    // --- UI Logic (Knobs, Tabs, Pads) ---
+    // --- UI Logic ---
     function initKnobs() {
         document.querySelectorAll('.knob').forEach(el => {
-            let min = parseFloat(el.getAttribute('data-min'));
-            let max = parseFloat(el.getAttribute('data-max'));
-            let val = parseFloat(el.getAttribute('data-val'));
+            let min = parseFloat(el.getAttribute('data-min')), max = parseFloat(el.getAttribute('data-max'));
             let ind = el.querySelector('.knob-indicator');
             
-            function updateAngle(v) {
-                let pct = (v - min) / (max - min);
-                let deg = -135 + (pct * 270);
-                ind.style.transform = `translateX(-50%) rotate(${deg}deg)`;
-            }
-            updateAngle(val);
+            function updateAngle(v) { ind.style.transform = `translateX(-50%) rotate(${-135 + ((v - min) / (max - min)) * 270}deg)`; }
+            updateAngle(parseFloat(el.getAttribute('data-val')));
 
-            let isDragging = false;
-            let startY, startVal;
+            let isDragging = false, startY, startVal;
 
             function onStart(e) {
-                isDragging = true;
-                startY = e.touches ? e.touches[0].clientY : e.clientY;
+                isDragging = true; startY = e.touches ? e.touches[0].clientY : e.clientY;
                 startVal = parseFloat(el.getAttribute('data-val'));
             }
             function onMove(e) {
                 if(!isDragging) return;
-                let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                let delta = startY - clientY; 
-                let range = max - min;
-                let newVal = Math.max(min, Math.min(max, startVal + (delta / 100) * range));
-                
-                // If it's a macro knob (1-4), round to integer
-                if(max <= 4) newVal = Math.round(newVal);
-                
-                el.setAttribute('data-val', newVal);
-                updateAngle(newVal);
-                handleKnobChange(el.id, newVal);
+                let delta = startY - (e.touches ? e.touches[0].clientY : e.clientY);
+                let newVal = Math.max(min, Math.min(max, startVal + (delta / 100) * (max - min)));
+                if(max <= 8) newVal = Math.round(newVal); else newVal = Math.floor(newVal); // integers only
+                el.setAttribute('data-val', newVal); updateAngle(newVal); handleKnobChange(el.id, newVal);
             }
             function onEnd() { isDragging = false; }
 
-            el.addEventListener('mousedown', onStart);
-            window.addEventListener('mousemove', onMove);
-            window.addEventListener('mouseup', onEnd);
-            
-            el.addEventListener('touchstart', onStart, {passive:true});
-            window.addEventListener('touchmove', onMove, {passive:true});
-            window.addEventListener('touchend', onEnd);
+            el.addEventListener('mousedown', onStart); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onEnd);
+            el.addEventListener('touchstart', (e)=>{ e.preventDefault(); onStart(e); }, {passive:false});
+            window.addEventListener('touchmove', onMove, {passive:false}); window.addEventListener('touchend', onEnd);
         });
     }
 
     function handleKnobChange(id, val) {
-        if (id === 'knob-melody') {
-            currentMelodyType = val;
-            document.getElementById('melDisplay').innerText = melNames[val-1];
-            updateSeedString();
-        } else if (id === 'knob-drum') {
-            currentDrumType = val;
-            document.getElementById('drumDisplay').innerText = drumNames[val-1];
-            updateSeedString();
-        } else if (id === 'knob-dust' && crackleGain) {
-            crackleGain.gain.value = (val / 100) * 0.05;
-            lowpass.frequency.value = 6000 - ((val / 100) * 4500);
-        } else if (id === 'knob-wobble' && lfoGain) {
-            lfoGain.gain.value = (val / 100) * 0.003;
-        }
+        if (id === 'knob-melody') { currentMelodyType = val; document.getElementById('melDisplay').innerText = melNames[val-1]; updateSeedString(); }
+        else if (id === 'knob-drum') { currentDrumType = val; document.getElementById('drumDisplay').innerText = drumNames[val-1]; updateSeedString(); }
+        else if (id === 'knob-phrase') { currentPhraseType = val; document.getElementById('phraseDisplay').innerText = phraseNames[val-1]; updateSeedString(); }
+        else if (id === 'knob-speed') { currentBPM = val; }
+        else if (id === 'knob-dust' && crackleGain) { crackleGain.gain.value = (val / 100) * 0.05; lowpass.frequency.value = 6000 - ((val / 100) * 4500); }
+        else if (id === 'knob-wobble' && lfoGain) { lfoGain.gain.value = (val / 100) * 0.003; }
     }
 
     function setKnobValue(id, val) {
-        let el = document.getElementById(id);
-        el.setAttribute('data-val', val);
-        let min = parseFloat(el.getAttribute('data-min'));
-        let max = parseFloat(el.getAttribute('data-max'));
-        let ind = el.querySelector('.knob-indicator');
-        let pct = (val - min) / (max - min);
-        ind.style.transform = `translateX(-50%) rotate(${-135 + (pct * 270)}deg)`;
+        let el = document.getElementById(id); el.setAttribute('data-val', val);
+        let min = parseFloat(el.getAttribute('data-min')), max = parseFloat(el.getAttribute('data-max'));
+        el.querySelector('.knob-indicator').style.transform = `translateX(-50%) rotate(${-135 + ((val - min) / (max - min)) * 270}deg)`;
         handleKnobChange(id, val);
     }
 
-    // Tabs & Pads
     function setTab(idx) {
         activeTab = idx;
-        document.querySelectorAll('.tab').forEach((t, i) => {
-            t.classList.toggle('active', i === idx);
-        });
-        renderPads();
-    }
-
-    function renderPads() {
-        let container = document.getElementById('padContainer');
-        container.innerHTML = '';
+        document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+        let container = document.getElementById('padContainer'); container.innerHTML = '';
         chordBanks[activeTab].forEach((chord, i) => {
-            let btn = document.createElement('button');
-            btn.className = 'pad';
-            btn.innerHTML = `${chord.n} <span>Pad 0${i+1}</span>`;
-            
-            // Interaction
-            btn.onmousedown = () => playPad(btn, chord.v);
-            btn.ontouchstart = (e) => { e.preventDefault(); playPad(btn, chord.v); }
-            btn.onmouseup = () => activeChordOverride = null;
-            btn.ontouchend = () => activeChordOverride = null;
-            btn.onmouseleave = () => activeChordOverride = null;
-            
+            let btn = document.createElement('button'); btn.className = 'pad'; btn.innerHTML = `${chord.n} <span>Pad 0${i+1}</span>`;
+            let play = (e) => { e.preventDefault(); document.querySelectorAll('.pad').forEach(p=>p.classList.remove('active')); btn.classList.add('active'); activeChordOverride = chord.v; if(!audioCtx) initAudio(); playSynthChord(audioCtx.currentTime, chord.v, true); };
+            let stop = () => activeChordOverride = null;
+            btn.onmousedown = play; btn.ontouchstart = play; btn.onmouseup = stop; btn.ontouchend = stop; btn.onmouseleave = stop;
             container.appendChild(btn);
         });
     }
 
-    function playPad(btn, notes) {
-        if(!audioCtx) initAudio();
-        // Visual feedback
-        document.querySelectorAll('.pad').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        
-        activeChordOverride = notes; // Override generator
-        playSynthChord(audioCtx.currentTime, notes, true); // Play instantly
+    function toggleAutoDJ() {
+        isAutoDJ = !isAutoDJ;
+        document.getElementById('autoDjBtn').classList.toggle('active', isAutoDJ);
     }
 
     // --- Seed Management ---
     function updateSeedString() {
-        let s = `${currentBaseSeed}-M${currentMelodyType}-D${currentDrumType}`;
-        document.getElementById('seedInput').value = s;
-        if(isPlaying) generateProcedural(); // Re-calc arrays on the fly
+        document.getElementById('seedInput').value = `${currentBaseSeed}-M${currentMelodyType}-D${currentDrumType}-P${currentPhraseType}`;
+        if(isPlaying) generateProcedural();
     }
 
     function parseSeedFromInput() {
         let str = document.getElementById('seedInput').value.trim().toUpperCase();
-        let match = str.match(/^([A-Z0-9]+)(?:-M([1-4]))?(?:-D([1-4]))?$/);
+        let match = str.match(/^([A-Z0-9]+)(?:-M([1-8]))?(?:-D([1-8]))?(?:-P([1-6]))?$/);
         if(match) {
             currentBaseSeed = match[1];
             if(match[2]) setKnobValue('knob-melody', parseInt(match[2]));
             if(match[3]) setKnobValue('knob-drum', parseInt(match[3]));
+            if(match[4]) setKnobValue('knob-phrase', parseInt(match[4]));
             generateProcedural();
-        } else {
-            // Revert on invalid
-            updateSeedString();
-        }
+        } else updateSeedString();
     }
 
     function randomizeSeed() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let str = '';
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let str = '';
         for(let i=0; i<5; i++) str += chars.charAt(Math.floor(Math.random() * chars.length));
         currentBaseSeed = str;
-        setKnobValue('knob-melody', Math.floor(Math.random()*4)+1);
-        setKnobValue('knob-drum', Math.floor(Math.random()*4)+1);
+        setKnobValue('knob-melody', Math.floor(Math.random()*8)+1);
+        setKnobValue('knob-drum', Math.floor(Math.random()*8)+1);
+        setKnobValue('knob-phrase', Math.floor(Math.random()*6)+1);
     }
 
-    // --- Generator Logic ---
+    // --- Procedural Generation Engine ---
     function generateProcedural() {
-        // Tie PRNG to full seed string so identical strings = identical beats
-        let fullSeed = `${currentBaseSeed}-M${currentMelodyType}-D${currentDrumType}`;
-        rng = mulberry32(cyrb128(fullSeed));
+        rng = mulberry32(cyrb128(`${currentBaseSeed}-M${currentMelodyType}-D${currentDrumType}-P${currentPhraseType}`));
+        seqKick.fill(0); seqSnare.fill(0); seqHat.fill(0); seqChords.fill(null); seqMelody.fill(null);
 
-        seqKick.fill(0); seqSnare.fill(0); seqHat.fill(0);
-        seqChords.fill(null); seqMelody.fill(null);
-
-        // Drums Generation
+        // Drums (1024 steps = 64 bars)
         for(let i=0; i<totalSteps; i++) {
-            let m1 = i % 16; // step in bar
+            let m1 = i % 16; 
             
-            if(currentDrumType === 1) { // Boom Bap
-                if([0, 10].includes(m1)) seqKick[i] = 1;
-                if([4, 12].includes(m1)) seqSnare[i] = 1;
-                if(m1 % 2 === 0) seqHat[i] = 0.5 + rng()*0.3;
-            } 
-            else if(currentDrumType === 2) { // Minimal
-                if(m1 === 0) seqKick[i] = 1;
-                if(m1 === 8) seqSnare[i] = 0.8;
-                if(m1 % 4 === 2 && rng()>0.5) seqHat[i] = 0.4;
+            switch(currentDrumType) {
+                case 1: // Boom Bap
+                    if([0, 10].includes(m1)) seqKick[i] = 1; if([4, 12].includes(m1)) seqSnare[i] = 1; if(m1%2===0) seqHat[i] = 0.6+rng()*0.3; break;
+                case 2: // Minimal
+                    if(m1===0) seqKick[i] = 1; if(m1===8) seqSnare[i]=0.8; if(m1%4===2 && rng()>0.5) seqHat[i]=0.4; break;
+                case 3: // Busy
+                    if([0,7,10].includes(m1)) seqKick[i] = 1; if([4,12].includes(m1)) seqSnare[i]=1; seqHat[i] = 0.4+rng()*0.4; break;
+                case 4: // Heavy
+                    if([0,8,9].includes(m1)) seqKick[i] = 1.2; if([4,12].includes(m1)) seqSnare[i]=1.2; if(m1%4===0) seqHat[i]=0.8; break;
+                case 5: // Dilla Swing
+                    if([0, 11].includes(m1)) seqKick[i] = 1; if([4, 12].includes(m1)) seqSnare[i]=0.9; if(m1%2!==0) seqHat[i]=0.5; break;
+                case 6: // 4 on Floor
+                    if(m1%4===0) seqKick[i] = 0.8; if([4,12].includes(m1)) seqSnare[i]=0.8; if(m1%2!==0) seqHat[i]=0.7; break;
+                case 7: // Breaks
+                    if([0, 10, 14].includes(m1)) seqKick[i]=0.9; if([4, 12].includes(m1)) seqSnare[i]=1; if(m1%2===0 || rng()>0.7) seqHat[i]=0.6; break;
+                case 8: // Ambient (No kick)
+                    if(m1===12) seqSnare[i]=0.5; if(m1%8===0 && rng()>0.5) seqHat[i]=0.3; break;
             }
-            else if(currentDrumType === 3) { // Busy
-                if([0, 7, 10].includes(m1)) seqKick[i] = 1;
-                if([4, 12].includes(m1)) seqSnare[i] = 1;
-                seqHat[i] = 0.4 + rng()*0.4; // 16ths
-            }
-            else if(currentDrumType === 4) { // Heavy
-                if([0, 8, 9].includes(m1)) seqKick[i] = 1.2;
-                if([4, 12].includes(m1)) seqSnare[i] = 1.2;
-                if(m1 % 4 === 0) seqHat[i] = 0.7;
-            }
-            
-            // Random Ghosts
-            if(!seqKick[i] && !seqSnare[i] && rng()>0.92) seqKick[i] = 0.3;
+            if(!seqKick[i] && !seqSnare[i] && rng()>0.95 && currentDrumType !== 8) seqKick[i] = 0.3; // Random ghost
         }
 
-        // Chords & Melody Generation
-        // Pick a chord progression from active Tab
-        let prog = [
-            chordBanks[activeTab][Math.floor(rng()*6)].v,
-            chordBanks[activeTab][Math.floor(rng()*6)].v,
-            chordBanks[activeTab][Math.floor(rng()*6)].v,
-            chordBanks[activeTab][Math.floor(rng()*6)].v
-        ];
+        // Chords & Melody
+        // Generate a macro progression for the 64 bars (change progression every 8 bars)
+        let macroProg = [];
+        for(let p=0; p<8; p++) {
+            macroProg.push([chordBanks[activeTab][Math.floor(rng()*6)].v, chordBanks[activeTab][Math.floor(rng()*6)].v, chordBanks[activeTab][Math.floor(rng()*6)].v, chordBanks[activeTab][Math.floor(rng()*6)].v]);
+        }
 
-        for(let bar=0; bar<16; bar++) {
+        for(let bar=0; bar<64; bar++) {
+            let prog = macroProg[Math.floor(bar / 8)];
             let chord = prog[bar % 4];
             
-            // Drop chord on beat 1
-            if(rng() > 0.1) seqChords[bar * 16] = chord;
+            // Chord Phrasing Logic
+            let cStep = bar * 16;
+            switch(currentPhraseType) {
+                case 1: cStep += 0; break; // Grid beat 1
+                case 2: cStep += (rng()>0.5 ? -2 : 0); break; // Synco push (8th note early)
+                case 3: cStep = (bar%2===0) ? cStep : -1; break; // Spread (every 2 bars)
+                case 4: cStep += 4; break; // Stabs on beat 2
+                case 5: cStep += (bar%2===0 ? 0 : 8); break; // Flow (Beat 1, then Beat 3 next bar)
+                case 6: cStep += 1; break; // Dragging (16th note late)
+            }
+            if(cStep >= 0 && cStep < totalSteps) seqChords[cStep] = chord;
 
-            // Generate Melody based on Type
+            // Melody Generation Logic
             for(let s=0; s<16; s++) {
                 let step = bar * 16 + s;
-                let cNotes = chord.map(n => n % 12); // Get pitch classes
                 let root = chord[0] + 12; // Octave up
                 
-                if(currentMelodyType === 1) { // Sparse
-                    if(rng() > 0.9) seqMelody[step] = chord[Math.floor(rng()*chord.length)] + 12;
-                }
-                else if(currentMelodyType === 2) { // Arps
-                    if(s % 2 === 0 && rng()>0.2) seqMelody[step] = chord[(s/2) % chord.length] + 12;
-                }
-                else if(currentMelodyType === 3) { // Licks (syncopated)
-                    if([3,6,9,14].includes(s) && rng()>0.3) seqMelody[step] = chord[Math.floor(rng()*chord.length)] + 12;
-                }
-                else if(currentMelodyType === 4) { // Dreamy (mostly long whole notes)
-                    if(s === 0) seqMelody[step] = chord[chord.length-1] + 12; // Play top note
+                switch(currentMelodyType) {
+                    case 1: // Sparse (Occasional long note)
+                        if(s===0 && rng()>0.6) seqMelody[step] = { n: chord[Math.floor(rng()*chord.length)]+12, d: 2.0 }; break;
+                    case 2: // Arps (Constant following chord)
+                        if(s%2===0 && rng()>0.2) seqMelody[step] = { n: chord[(s/2)%chord.length]+12, d: 0.3 }; break;
+                    case 3: // Licks (16th bursts)
+                        if([3,4,5,14].includes(s) && rng()>0.3) seqMelody[step] = { n: chord[Math.floor(rng()*chord.length)]+12, d: 0.2 }; break;
+                    case 4: // Dreamy (High polyrhythm)
+                        if(s%3===0 && rng()>0.5) seqMelody[step] = { n: chord[chord.length-1]+24, d: 1.5 }; break;
+                    case 5: // Plucks (Offbeats)
+                        if(s%2!==0 && rng()>0.4) seqMelody[step] = { n: chord[Math.floor(rng()*chord.length)]+12, d: 0.1 }; break;
+                    case 6: // Runs (Ascending)
+                        if(s>8 && rng()>0.2) seqMelody[step] = { n: chord[s%chord.length]+12, d: 0.2 }; break;
+                    case 7: // Cascades (Descending)
+                        if(s%2===0) seqMelody[step] = { n: chord[chord.length - 1 - ((s/2)%chord.length)]+12, d: 0.5 }; break;
+                    case 8: // Call / Response
+                        if((bar%2===0 && s<8) || (bar%2!==0 && s>8)) {
+                            if(rng()>0.5) seqMelody[step] = { n: chord[Math.floor(rng()*chord.length)]+12, d: 0.4 };
+                        } break;
                 }
             }
         }
@@ -629,113 +543,92 @@
     function initAudio() {
         if(audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         masterGain = audioCtx.createGain(); masterGain.gain.value = 0.7;
         
-        // Lo-Fi FX Chain
         tapeDelay = audioCtx.createDelay(); tapeDelay.delayTime.value = 0.005;
         let lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.2;
-        lfoGain = audioCtx.createGain(); 
-        lfo.connect(lfoGain); lfoGain.connect(tapeDelay.delayTime); lfo.start();
-
+        lfoGain = audioCtx.createGain(); lfo.connect(lfoGain); lfoGain.connect(tapeDelay.delayTime); lfo.start();
         lowpass = audioCtx.createBiquadFilter(); lowpass.type = 'lowpass';
-
         masterGain.connect(tapeDelay); tapeDelay.connect(lowpass); lowpass.connect(audioCtx.destination);
 
-        // Noise
         noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
-        let out = noiseBuffer.getChannelData(0);
-        for(let i=0; i<audioCtx.sampleRate; i++) out[i] = Math.random()*2-1;
+        let out = noiseBuffer.getChannelData(0); for(let i=0; i<audioCtx.sampleRate; i++) out[i] = Math.random()*2-1;
         
         let noiseSrc = audioCtx.createBufferSource(); noiseSrc.buffer = noiseBuffer; noiseSrc.loop = true;
         let nFilter = audioCtx.createBiquadFilter(); nFilter.type = 'bandpass'; nFilter.frequency.value = 2500;
         crackleGain = audioCtx.createGain();
-        noiseSrc.connect(nFilter); nFilter.connect(crackleGain); crackleGain.connect(masterGain);
-        noiseSrc.start();
+        noiseSrc.connect(nFilter); nFilter.connect(crackleGain); crackleGain.connect(masterGain); noiseSrc.start();
 
-        // Trigger knob updates to set initial audio params
-        handleKnobChange('knob-dust', 60);
-        handleKnobChange('knob-wobble', 40);
+        handleKnobChange('knob-dust', 60); handleKnobChange('knob-wobble', 50);
     }
 
-    // Synths
     function playKick(t, v) {
         let o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.frequency.setValueAtTime(currentDrumType===4 ? 100 : 150, t);
-        o.frequency.exponentialRampToValueAtTime(0.01, t+0.5);
+        o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(0.01, t+0.5);
         g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.5);
         o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.5);
     }
     function playSnare(t, v) {
         let o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.frequency.setValueAtTime(200, t); g.gain.setValueAtTime(v*0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.2);
+        o.frequency.setValueAtTime(180, t); g.gain.setValueAtTime(v*0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.2);
         o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.2);
-        
         let n = audioCtx.createBufferSource(); n.buffer = noiseBuffer;
-        let ng = audioCtx.createGain(); ng.gain.setValueAtTime(v*0.7, t); ng.gain.exponentialRampToValueAtTime(0.001, t+0.3);
+        let ng = audioCtx.createGain(); ng.gain.setValueAtTime(v*0.6, t); ng.gain.exponentialRampToValueAtTime(0.001, t+0.3);
         n.connect(ng); ng.connect(masterGain); n.start(t); n.stop(t+0.3);
     }
     function playHat(t, v) {
         let n = audioCtx.createBufferSource(); n.buffer = noiseBuffer;
         let f = audioCtx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6000;
-        let g = audioCtx.createGain(); g.gain.setValueAtTime(v*0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+        let g = audioCtx.createGain(); g.gain.setValueAtTime(v*0.25, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.1);
         n.connect(f); f.connect(g); g.connect(masterGain); n.start(t); n.stop(t+0.1);
     }
 
     function playSynthChord(t, notes, isPluck) {
         notes.forEach(note => {
             let o = audioCtx.createOscillator(), g = audioCtx.createGain();
-            o.type = 'triangle'; o.frequency.value = midiToFreq(note);
+            o.type = 'triangle'; o.frequency.value = midiToFreq(note) + (Math.random()*0.5 - 0.25); // analog drift
             g.gain.setValueAtTime(0, t);
-            if(isPluck) { g.gain.linearRampToValueAtTime(0.15, t+0.05); g.gain.exponentialRampToValueAtTime(0.001, t+1.5); }
-            else { g.gain.linearRampToValueAtTime(0.1, t+0.1); g.gain.exponentialRampToValueAtTime(0.001, t+3); }
-            o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+3);
+            if(isPluck) { g.gain.linearRampToValueAtTime(0.12, t+0.05); g.gain.exponentialRampToValueAtTime(0.001, t+1.0); }
+            else { g.gain.linearRampToValueAtTime(0.08, t+0.1); g.gain.exponentialRampToValueAtTime(0.001, t+2.5); }
+            o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+2.5);
         });
     }
 
-    function playSynthMelody(t, note) {
+    function playSynthMelody(t, noteData) {
         let o = audioCtx.createOscillator(), g = audioCtx.createGain();
-        o.type = 'sine'; o.frequency.value = midiToFreq(note);
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.15, t+0.05);
-        let length = currentMelodyType === 4 ? 2.0 : 0.5; // Dreamy is longer
-        g.gain.exponentialRampToValueAtTime(0.001, t+length);
-        o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+length);
+        o.type = 'sine'; o.frequency.value = midiToFreq(noteData.n);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.12, t+0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, t + noteData.d);
+        o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + noteData.d);
     }
 
-    // Scheduler
     function scheduleStep(step, time) {
-        let playTime = time + (step % 2 !== 0 ? 0.04 : 0); // Swing
+        let swingAmt = currentDrumType === 5 ? 0.08 : 0.03; // Heavy swing for Dilla
+        let playTime = time + (step % 2 !== 0 ? swingAmt : 0); 
 
-        // Drums
         if(seqKick[step]) playKick(playTime, seqKick[step]);
         if(seqSnare[step]) playSnare(playTime, seqSnare[step]);
         if(seqHat[step]) playHat(playTime, seqHat[step]);
 
-        // Chords (Override if holding pad)
-        if(activeChordOverride && step % 4 === 0) {
-            // Pulse the held chord
-            playSynthChord(playTime, activeChordOverride, true);
-        } else if(!activeChordOverride && seqChords[step]) {
-            playSynthChord(playTime, seqChords[step], false);
-        }
+        if(activeChordOverride && step % 8 === 0) playSynthChord(playTime, activeChordOverride, true);
+        else if(!activeChordOverride && seqChords[step]) playSynthChord(playTime, seqChords[step], currentPhraseType === 4); // Stabs are plucky
 
-        // Melody
         if(seqMelody[step]) {
-            let note = seqMelody[step];
-            if(activeChordOverride) {
-                // Snap melody to live chord
-                let cNotes = activeChordOverride;
-                note = cNotes.reduce((p, c) => Math.abs((c%12)-(note%12)) < Math.abs((p%12)-(note%12)) ? c : p) + 12;
-            }
-            playSynthMelody(playTime, note);
+            let nData = seqMelody[step];
+            if(activeChordOverride) nData.n = activeChordOverride.reduce((p, c) => Math.abs((c%12)-(nData.n%12)) < Math.abs((p%12)-(nData.n%12)) ? c : p) + 12;
+            playSynthMelody(playTime, nData);
         }
     }
 
     function scheduler() {
         while (nextNoteTime < audioCtx.currentTime + 0.1) {
             scheduleStep(currentStep, nextNoteTime);
-            nextNoteTime += (60 / bpm) / 4;
-            currentStep = (currentStep + 1) % totalSteps;
+            nextNoteTime += (60 / currentBPM) / 4;
+            currentStep++;
+            if(currentStep >= totalSteps) {
+                currentStep = 0;
+                if(isAutoDJ) { randomizeSeed(); console.log("Auto-DJ: New Seed Generated!"); }
+            }
         }
         timerID = setTimeout(scheduler, 25);
     }
@@ -744,23 +637,17 @@
         initAudio();
         const btn = document.getElementById('playBtn');
         if (isPlaying) {
-            isPlaying = false; clearTimeout(timerID);
-            if(audioCtx.state === 'running') audioCtx.suspend();
+            isPlaying = false; clearTimeout(timerID); if(audioCtx.state === 'running') audioCtx.suspend();
             btn.innerHTML = "► PLAY"; btn.classList.remove('playing');
         } else {
-            generateProcedural(); // Build initial sequence
-            isPlaying = true; if(audioCtx.state === 'suspended') audioCtx.resume();
-            currentStep = 0; nextNoteTime = audioCtx.currentTime + 0.05;
-            scheduler();
+            generateProcedural(); isPlaying = true; if(audioCtx.state === 'suspended') audioCtx.resume();
+            currentStep = 0; nextNoteTime = audioCtx.currentTime + 0.05; scheduler();
             btn.innerHTML = "◼ STOP"; btn.classList.add('playing');
         }
     }
 
-    // Init
-    initKnobs();
-    setTab(0);
-    parseSeedFromInput(); // Sets UI based on default value
+    // Init UI
+    initKnobs(); setTab(0); parseSeedFromInput();
 </script>
-
 </body>
 </html>
