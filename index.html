@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Procedural Lo-Fi Generator</title>
+    <title>Lo-Fi Song Machine</title>
     <style>
         :root {
-            --bg: #1e1e24;
-            --panel: #2b2b36;
+            --bg: #121216;
+            --panel: #1e1e24;
             --text: #e0e0e0;
-            --accent1: #ffb86c;
-            --accent2: #bd93f9;
-            --accent3: #ff79c6;
-            --radius: 12px;
+            --pad-chord: #ff79c6;
+            --pad-riff: #8be9fd;
+            --pad-fx: #ffb86c;
+            --accent: #bd93f9;
+            --radius: 16px;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -26,183 +27,224 @@
             align-items: center;
             min-height: 100vh;
             user-select: none;
+            -webkit-user-select: none;
         }
 
-        .container {
-            background-color: var(--panel);
+        .machine {
+            background: linear-gradient(145deg, #23232a, #1a1a1f);
             padding: 30px;
-            border-radius: var(--radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 2px 2px rgba(255,255,255,0.05);
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             box-sizing: border-box;
-            border: 2px solid #3d3d4a;
+            border: 1px solid #333;
         }
 
-        h1 {
+        .screen {
+            background: #0a0a0c;
+            border: 2px solid #333;
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
             text-align: center;
-            margin-top: 0;
-            font-size: 1.5rem;
-            color: var(--accent3);
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
         }
 
-        .header-controls {
+        .screen h1 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .top-controls {
             display: flex;
             gap: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 10px;
         }
 
         input[type="text"] {
             flex: 1;
             padding: 10px;
-            background: #17171c;
+            background: #111;
             border: 1px solid #444;
-            color: var(--accent1);
-            font-family: inherit;
+            color: var(--accent);
+            font-family: monospace;
             font-size: 1rem;
-            border-radius: var(--radius);
+            border-radius: 8px;
             text-align: center;
         }
 
-        button {
-            background: #44475a;
+        button.util {
+            background: #333;
             color: #fff;
             border: none;
             padding: 10px 15px;
-            font-family: inherit;
-            border-radius: var(--radius);
+            border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
             font-weight: bold;
-        }
-
-        button:hover { background: #6272a4; }
-        button:active { transform: scale(0.95); }
-
-        .control-group {
-            margin-bottom: 20px;
-            background: #22222a;
-            padding: 15px;
-            border-radius: var(--radius);
-            border-left: 4px solid var(--accent2);
-        }
-
-        .control-group label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            color: #aaa;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            appearance: none;
-            background: #17171c;
-            height: 8px;
-            border-radius: 4px;
-            outline: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: var(--accent2);
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        select {
-            width: 100%;
-            padding: 10px;
-            background: #17171c;
-            color: var(--text);
-            border: 1px solid #444;
-            border-radius: var(--radius);
-            font-family: inherit;
-            appearance: none;
-        }
-
-        .play-btn {
-            width: 100%;
-            padding: 15px;
-            background: var(--accent3);
-            color: #fff;
-            font-size: 1.2rem;
-            border-radius: var(--radius);
-            margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(255, 121, 198, 0.3);
+            transition: 0.1s;
         }
         
-        .play-btn.playing {
-            background: var(--accent1);
-            box-shadow: 0 4px 15px rgba(255, 184, 108, 0.3);
-        }
+        button.util:active { transform: scale(0.95); }
 
-        .status {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: #666;
-            height: 15px;
-        }
-        
         .progress-bar {
             width: 100%;
-            height: 4px;
-            background: #17171c;
-            margin-top: 15px;
-            border-radius: 2px;
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
             overflow: hidden;
+            margin-top: 10px;
         }
         
         .progress-fill {
             height: 100%;
             width: 0%;
-            background: var(--accent2);
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin: 20px 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Hardware Pads */
+        .pad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .pad {
+            aspect-ratio: 1.5;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #111;
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.4);
+            transition: 0.1s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.2;
+        }
+
+        .pad span { font-size: 0.7rem; opacity: 0.8; font-weight: 500; }
+
+        .pad:active, .pad.active {
+            box-shadow: 0 2px 0 rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.2);
+            transform: translateY(4px);
+        }
+
+        .pad.chord { background: var(--pad-chord); }
+        .pad.chord.active { filter: brightness(1.3); box-shadow: 0 0 20px var(--pad-chord); transform: translateY(4px); }
+        
+        .pad.riff { background: var(--pad-riff); }
+        .pad.fx { background: var(--pad-fx); }
+
+        .transport {
+            display: flex;
+            gap: 15px;
+        }
+
+        .play-btn {
+            flex: 2;
+            padding: 20px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #7a50b8, inset 0 2px 2px rgba(255,255,255,0.3);
+            transition: 0.1s;
+        }
+
+        .play-btn:active {
+            box-shadow: 0 2px 0 #7a50b8;
+            transform: translateY(4px);
+        }
+
+        .play-btn.playing {
+            background: #ff5555;
+            box-shadow: 0 6px 0 #b33939;
+        }
+
+        /* Knobs/Sliders */
+        .knobs { display: flex; gap: 15px; }
+        .knob-container { flex: 1; text-align: center; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
         }
 
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Lo-Fi Generator</h1>
-    
-    <div class="header-controls">
-        <input type="text" id="seedInput" value="CHILL-BEATS-01" placeholder="Enter Seed...">
-        <button onclick="randomizeSeed()">🎲 Random</button>
+<div class="machine">
+    <div class="screen">
+        <h1>LØ-FÏ SØNG MÄCHINË</h1>
+        <div class="top-controls">
+            <input type="text" id="seedInput" value="DREAM-01" placeholder="Seed...">
+            <button class="util" onclick="randomizeSeed()">🎲</button>
+            <button class="util" onclick="generateProcedural()">GENERATE</button>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     </div>
 
-    <div class="control-group">
-        <label>Mood (Chords) <span id="moodVal">Jazzy Minor</span></label>
-        <select id="moodSelect" onchange="generateSong()">
-            <option value="0">Jazzy Minor (ii-V-I)</option>
-            <option value="1">Melancholy (i-VI-III-VII)</option>
-            <option value="2">Late Night (IV-III-ii-I)</option>
-        </select>
+    <div class="section-label">LIVE COMPOSE (Overrides sequence)</div>
+    <div class="pad-grid">
+        <button class="pad chord" onclick="triggerChord(0)" id="pad-chord-0">Cm9 <span>(i)</span></button>
+        <button class="pad chord" onclick="triggerChord(1)" id="pad-chord-1">Fm9 <span>(iv)</span></button>
+        <button class="pad chord" onclick="triggerChord(2)" id="pad-chord-2">Gm7 <span>(v)</span></button>
+        <button class="pad chord" onclick="triggerChord(3)" id="pad-chord-3">Ebmaj9 <span>(III)</span></button>
+        <button class="pad chord" onclick="triggerChord(4)" id="pad-chord-4">Abmaj9 <span>(VI)</span></button>
+        <button class="pad chord" onclick="triggerChord(5)" id="pad-chord-5">Bbdom9 <span>(VII)</span></button>
     </div>
 
-    <div class="control-group">
-        <label>Drum Density <span id="drumVal">Medium</span></label>
-        <input type="range" id="drumDensity" min="1" max="5" value="3" onchange="generateSong()">
+    <div class="section-label">PERFORMANCE FX</div>
+    <div class="pad-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <button class="pad riff" onmousedown="triggerRiff(true)" onmouseup="triggerRiff(false)" onmouseleave="triggerRiff(false)">
+            🎹 AUTO-RIFF
+            <span>(Hold to Solo)</span>
+        </button>
+        <button class="pad fx" onmousedown="triggerDrop(true)" onmouseup="triggerDrop(false)" onmouseleave="triggerDrop(false)">
+            🔇 BEAT DROP
+            <span>(Hold to Mute Drums)</span>
+        </button>
     </div>
 
-    <div class="control-group">
-        <label>Melody Complexity <span id="melodyVal">Sparse</span></label>
-        <input type="range" id="melodyDensity" min="1" max="5" value="2" onchange="generateSong()">
+    <div class="section-label">MIX</div>
+    <div class="knobs">
+        <div class="knob-container">
+            <span style="font-size: 12px; color: #888;">Vinyl Dust</span>
+            <input type="range" id="lofiAmount" min="0" max="100" value="70">
+        </div>
+        <div class="knob-container">
+            <span style="font-size: 12px; color: #888;">Tape Wobble</span>
+            <input type="range" id="wobbleAmount" min="0" max="100" value="50">
+        </div>
     </div>
 
-    <button class="play-btn" id="playBtn" onclick="togglePlay()">PLAY</button>
-    
-    <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
+    <div class="transport" style="margin-top: 25px;">
+        <button class="play-btn" id="playBtn" onclick="togglePlay()">► PLAY</button>
     </div>
-
-    <div class="status" id="statusText">Ready</div>
 </div>
 
 <script>
@@ -211,45 +253,59 @@
     let isPlaying = false;
     let timerID;
     
-    // Song parameters
-    const bpm = 78;
-    const loopBars = 64; // 64 bars total cycle (approx 3.3 mins at 78bpm)
-    const stepsPerBar = 16; 
-    const totalSteps = loopBars * stepsPerBar; // 1024 steps (16th notes)
-    const swingAmount = 0.03; // Seconds to delay odd 16th notes
+    const bpm = 82;
+    const stepsPerBar = 16;
+    const loopBars = 16; 
+    const totalSteps = loopBars * stepsPerBar; // 256 steps loop
+    const swing = 0.04;
     
     let currentStep = 0;
     let nextNoteTime = 0;
-    
-    // Arrays holding procedural sequence data
+    let rng = Math.random;
+
+    // Performance Overrides
+    let activeChordIdx = null; // Set when user presses a pad
+    let autoRiffActive = false;
+    let beatDropActive = false;
+
+    // Sequences
     let seqKick = new Array(totalSteps).fill(0);
     let seqSnare = new Array(totalSteps).fill(0);
     let seqHat = new Array(totalSteps).fill(0);
     let seqChords = new Array(totalSteps).fill(null);
-    let seqBass = new Array(totalSteps).fill(null);
     let seqMelody = new Array(totalSteps).fill(null);
-
-    // Audio Buffers & Nodes
-    let masterGain, compressor, lowpassFilter, vinylNoiseNode, tapeDelay;
+    
+    // Audio Nodes
+    let masterGain, compressor, tapeSaturator, tapeDelay, lowpass, reverbNode;
+    let vinylNoiseNode, crackleGain;
     let noiseBuffer;
 
-    // --- PRNG (Seeded Random) ---
+    // --- Music Theory ---
+    // Key: C Minor
+    const C3 = 48;
+    const chordsList = [
+        [C3, C3+3, C3+7, C3+10, C3+14],        // 0: Cm9 (i)
+        [C3+5, C3+8, C3+12, C3+15, C3+19],     // 1: Fm9 (iv)
+        [C3+7, C3+10, C3+14, C3+17],           // 2: Gm7 (v)
+        [C3+3, C3+7, C3+10, C3+14, C3+17],     // 3: Ebmaj9 (III)
+        [C3+8, C3+12, C3+15, C3+19, C3+22],    // 4: Abmaj9 (VI)
+        [C3+10, C3+14, C3+17, C3+20, C3+24]    // 5: Bbdom9 (VII)
+    ];
+
+    const cMinorPentatonic = [C3, C3+3, C3+5, C3+7, C3+10, C3+12, C3+15, C3+17, C3+19, C3+22, C3+24];
+
+    // --- PRNG ---
     function cyrb128(str) {
         let h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
         for (let i = 0; i < str.length; i++) {
             let k = str.charCodeAt(i);
-            h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
-            h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
-            h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
-            h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+            h1 = h2 ^ Math.imul(h1 ^ k, 597399067); h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+            h3 = h4 ^ Math.imul(h3 ^ k, 951274213); h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
         }
-        h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
-        h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
-        h3 = Math.imul(h1 ^ (h3 >>> 17), 2716044179);
-        h4 = Math.imul(h2 ^ (h4 >>> 19), 951274213);
+        h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067); h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+        h3 = Math.imul(h1 ^ (h3 >>> 17), 2716044179); h4 = Math.imul(h2 ^ (h4 >>> 19), 951274213);
         return (h1^h2^h3^h4)>>>0;
     }
-
     function mulberry32(a) {
         return function() {
             var t = a += 0x6D2B79F5;
@@ -259,441 +315,473 @@
         }
     }
 
-    let rng = Math.random;
+    function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
-    // --- Music Theory Data ---
-    const rootNotes = [48, 50, 52, 53, 55, 57, 59]; // C3 to B3 roughly
-    
-    // Chord types (relative semi-tones)
-    const chordsList = {
-        min9: [0, 3, 7, 10, 14],
-        maj9: [0, 4, 7, 11, 14],
-        dom9: [0, 4, 7, 10, 14],
-        min7: [0, 3, 7, 10],
-        maj7: [0, 4, 7, 11]
-    };
-
-    // Progressions based on mood
-    const progressions = [
-        // 0: Jazzy Minor (ii9 - V9 - i min9 - i min9)
-        [{r: 2, c: 'min9'}, {r: 7, c: 'dom9'}, {r: 0, c: 'min9'}, {r: 0, c: 'min9'}],
-        // 1: Melancholy (i min7 - VI maj7 - III maj7 - VII dom9)
-        [{r: 0, c: 'min7'}, {r: 8, c: 'maj7'}, {r: 3, c: 'maj7'}, {r: 10, c: 'dom9'}],
-        // 2: Late Night (IV maj9 - III min7 - ii min9 - I maj9)
-        [{r: 5, c: 'maj9'}, {r: 4, c: 'min7'}, {r: 2, c: 'min9'}, {r: 0, c: 'maj9'}]
-    ];
-
-    function midiToFreq(m) {
-        return 440 * Math.pow(2, (m - 69) / 12);
-    }
-
-    // --- Generation Logic ---
-    function randomizeSeed() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let str = '';
-        for(let i=0; i<8; i++) str += chars.charAt(Math.floor(Math.random() * chars.length));
-        document.getElementById('seedInput').value = `BEAT-${str}`;
-        if(isPlaying) generateSong();
-    }
-
-    function generateSong() {
-        const seedStr = document.getElementById('seedInput').value;
-        const moodIdx = parseInt(document.getElementById('moodSelect').value);
-        const drumDens = parseInt(document.getElementById('drumDensity').value);
-        const melDens = parseInt(document.getElementById('melodyDensity').value);
-        
-        // Update UI labels
-        document.getElementById('drumVal').innerText = ['Minimal', 'Sparse', 'Medium', 'Busy', 'Frantic'][drumDens-1];
-        document.getElementById('melodyVal').innerText = ['None', 'Sparse', 'Medium', 'Active', 'Lead'][melDens-1];
-        
-        // Initialize PRNG
-        const seedCombined = seedStr + moodIdx + drumDens + melDens;
-        rng = mulberry32(cyrb128(seedCombined));
-
-        // Clear arrays
-        seqKick.fill(0); seqSnare.fill(0); seqHat.fill(0);
-        seqChords.fill(null); seqBass.fill(null); seqMelody.fill(null);
-
-        // 1. Generate Drums (4-bar loops, repeated and varied)
-        const baseKick = [1,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,0]; // Standard hiphop
-        const baseSnare = [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0];
-        
-        for (let bar = 0; bar < loopBars; bar++) {
-            for (let step = 0; step < 16; step++) {
-                let idx = bar * 16 + step;
-                
-                // Kicks & Snares
-                if (baseKick[step]) seqKick[idx] = 1;
-                if (baseSnare[step]) seqSnare[idx] = 1;
-                
-                // Ghost notes based on density
-                if (drumDens > 1 && rng() < (drumDens * 0.05) && step % 4 !== 0) {
-                    if (rng() > 0.5) seqKick[idx] = 0.4; // Ghost kick
-                    else seqSnare[idx] = 0.3; // Ghost snare
-                }
-
-                // Hats
-                let hatChance = (drumDens * 0.2);
-                if (step % 2 === 0) hatChance += 0.5; // Accent 8th notes
-                if (rng() < hatChance) {
-                    seqHat[idx] = (step % 4 === 0) ? 0.8 : 0.4;
-                }
+    // --- High Quality DSP Generation ---
+    function createReverb() {
+        // Generate Synthetic Impulse Response for Reverb
+        let len = audioCtx.sampleRate * 2.5;
+        let impulse = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
+        for (let i = 0; i < 2; i++) {
+            let channel = impulse.getChannelData(i);
+            for (let j = 0; j < len; j++) {
+                // Exponential decay noise
+                channel[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / len, 4);
             }
         }
-
-        // 2. Generate Chords & Bass (8-bar macro structure)
-        const prog = progressions[moodIdx];
-        const rootKey = rootNotes[Math.floor(rng() * rootNotes.length)];
-        
-        for (let bar = 0; bar < loopBars; bar++) {
-            // Change chord every 2 bars usually, or every 1 bar
-            const chordIdx = Math.floor(bar / 2) % prog.length; 
-            const chordDef = prog[chordIdx];
-            
-            const rootMidi = rootKey + chordDef.r;
-            const notes = chordsList[chordDef.c].map(n => rootMidi + n);
-            
-            // Apply chord on beat 1 of the bar
-            if (bar % 2 === 0 || rng() > 0.5) {
-                // Occasional syncopation (push chord 1 step early)
-                let push = (rng() > 0.7) ? -1 : 0;
-                let stepIdx = bar * 16 + push;
-                if (stepIdx >= 0) {
-                    seqChords[stepIdx] = notes;
-                }
-            }
-
-            // Bassline (Roots & 5ths)
-            for (let step = 0; step < 16; step++) {
-                let idx = bar * 16 + step;
-                if (step === 0) {
-                    seqBass[idx] = rootMidi - 12; // Root octave down
-                } else if (step === 8 && rng() > 0.5) {
-                    seqBass[idx] = rootMidi - 12;
-                } else if (drumDens > 2 && rng() < 0.1) {
-                    // Syncopated bass ghost
-                    seqBass[idx] = rootMidi - 12 + (rng()>0.5 ? 7 : 0); // Root or 5th
-                }
-            }
-            
-            // 3. Melody Generation
-            if (melDens > 1) {
-                for (let step = 0; step < 16; step++) {
-                    let idx = bar * 16 + step;
-                    let melChance = (melDens - 1) * 0.05;
-                    if (step % 4 === 0) melChance += 0.1;
-                    
-                    if (rng() < melChance) {
-                        // Pick note from current chord
-                        let note = notes[Math.floor(rng() * notes.length)];
-                        // Jump up an octave occasionally
-                        if (rng() > 0.5) note += 12;
-                        seqMelody[idx] = note;
-                    }
-                }
-            }
-        }
+        let convolver = audioCtx.createConvolver();
+        convolver.buffer = impulse;
+        return convolver;
     }
 
-    // --- Audio System Setup ---
+    function createDistortionCurve(amount) {
+        let k = typeof amount === 'number' ? amount : 50,
+            n_samples = 44100, curve = new Float32Array(n_samples),
+            deg = Math.PI / 180, i = 0, x;
+        for ( ; i < n_samples; ++i ) {
+            x = i * 2 / n_samples - 1;
+            curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
+        }
+        return curve;
+    }
+
     function initAudio() {
         if(audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Master Bus
+        // Master Chain
         masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.8;
-        
+        masterGain.gain.value = 0.7;
+
         compressor = audioCtx.createDynamicsCompressor();
-        compressor.threshold.value = -15;
-        compressor.knee.value = 10;
+        compressor.threshold.value = -20;
         compressor.ratio.value = 4;
-        compressor.attack.value = 0.05;
-        compressor.release.value = 0.25;
+        compressor.attack.value = 0.01;
+        compressor.release.value = 0.2;
 
-        // Lo-fi Lowpass Filter
-        lowpassFilter = audioCtx.createBiquadFilter();
-        lowpassFilter.type = 'lowpass';
-        lowpassFilter.frequency.value = 2500; // Muffled lo-fi sound
-        lowpassFilter.Q.value = 0.5;
+        tapeSaturator = audioCtx.createWaveShaper();
+        tapeSaturator.curve = createDistortionCurve(10); 
+        tapeSaturator.oversample = '2x';
 
-        // Tape Wow & Flutter (Pitch wobble)
+        // Tape Wobble (Chorus/Vibrato)
         tapeDelay = audioCtx.createDelay(0.1);
-        tapeDelay.delayTime.value = 0.02;
+        tapeDelay.delayTime.value = 0.005;
         let lfo = audioCtx.createOscillator();
         lfo.type = 'sine';
-        lfo.frequency.value = 0.5; // 0.5Hz slow wobble
+        lfo.frequency.value = 0.3; // 0.3Hz slow wobble
         let lfoGain = audioCtx.createGain();
-        lfoGain.gain.value = 0.001;
+        lfoGain.gain.value = 0.001; // Depth (updated via UI)
         lfo.connect(lfoGain);
         lfoGain.connect(tapeDelay.delayTime);
         lfo.start();
 
-        // Routing
-        masterGain.connect(compressor);
-        compressor.connect(tapeDelay);
-        tapeDelay.connect(lowpassFilter);
-        lowpassFilter.connect(audioCtx.destination);
+        lowpass = audioCtx.createBiquadFilter();
+        lowpass.type = 'lowpass';
+        lowpass.frequency.value = 3500; // Warm Lo-Fi sound
 
-        // Generate Noise Buffer (for drums & vinyl crackle)
-        const bufferSize = audioCtx.sampleRate * 2;
-        noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            output[i] = Math.random() * 2 - 1;
-        }
+        reverbNode = createReverb();
+        let revGain = audioCtx.createGain();
+        revGain.gain.value = 0.15; // Reverb mix amount
+        
+        // Routing: Master -> Compressor -> Saturation -> Wobble -> Lowpass -> Out
+        masterGain.connect(compressor);
+        compressor.connect(tapeSaturator);
+        tapeSaturator.connect(tapeDelay);
+        tapeDelay.connect(lowpass);
+        lowpass.connect(audioCtx.destination);
+
+        // Reverb Send
+        tapeDelay.connect(reverbNode);
+        reverbNode.connect(revGain);
+        revGain.connect(lowpass);
+
+        // Noise buffer
+        noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+        let output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < audioCtx.sampleRate * 2; i++) output[i] = Math.random() * 2 - 1;
 
         startVinylCrackle();
+
+        // Bind UI Controls
+        document.getElementById('wobbleAmount').addEventListener('input', (e) => {
+            lfoGain.gain.value = (e.target.value / 100) * 0.003;
+        });
+        document.getElementById('lofiAmount').addEventListener('input', (e) => {
+            crackleGain.gain.value = (e.target.value / 100) * 0.05;
+            lowpass.frequency.value = 6000 - ((e.target.value / 100) * 4500); // 1500Hz max lo-fi
+        });
+        // trigger initial values
+        document.getElementById('wobbleAmount').dispatchEvent(new Event('input'));
+        document.getElementById('lofiAmount').dispatchEvent(new Event('input'));
     }
 
     function startVinylCrackle() {
-        // Continuous background noise
         vinylNoiseNode = audioCtx.createBufferSource();
         vinylNoiseNode.buffer = noiseBuffer;
         vinylNoiseNode.loop = true;
         
         let noiseFilter = audioCtx.createBiquadFilter();
         noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.value = 1000;
-        noiseFilter.Q.value = 0.2;
+        noiseFilter.frequency.value = 2000;
+        noiseFilter.Q.value = 0.5;
         
-        let noiseGain = audioCtx.createGain();
-        noiseGain.gain.value = 0.02; // Very quiet
+        crackleGain = audioCtx.createGain();
+        crackleGain.gain.value = 0.035;
         
         vinylNoiseNode.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(masterGain);
+        noiseFilter.connect(crackleGain);
+        crackleGain.connect(masterGain);
         vinylNoiseNode.start();
 
-        // Random pops
+        // Random Dust Pops
         setInterval(() => {
             if(!isPlaying) return;
-            if(Math.random() > 0.3) return;
+            if(Math.random() > (document.getElementById('lofiAmount').value / 100)) return;
             let pop = audioCtx.createOscillator();
             pop.type = 'sine';
-            pop.frequency.setValueAtTime(800, audioCtx.currentTime);
-            pop.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.05);
-            
+            pop.frequency.setValueAtTime(600, audioCtx.currentTime);
+            pop.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.02);
             let pGain = audioCtx.createGain();
-            pGain.gain.setValueAtTime(0.05 + Math.random()*0.1, audioCtx.currentTime);
-            pGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-            
-            pop.connect(pGain);
-            pGain.connect(masterGain);
-            pop.start();
-            pop.stop(audioCtx.currentTime + 0.05);
-        }, 800);
+            pGain.gain.setValueAtTime(crackleGain.gain.value * 2, audioCtx.currentTime);
+            pGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
+            pop.connect(pGain); pGain.connect(masterGain);
+            pop.start(); pop.stop(audioCtx.currentTime + 0.02);
+        }, 500);
     }
 
-    // --- Synthesizers ---
+    // --- Instrument DSP ---
     function playKick(time, vel) {
         let osc = audioCtx.createOscillator();
         let gain = audioCtx.createGain();
-        
+        // Pitch Envelope for punch
         osc.frequency.setValueAtTime(150, time);
+        osc.frequency.exponentialRampToValueAtTime(40, time + 0.05);
         osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
-        
+        // Amp Envelope
         gain.gain.setValueAtTime(vel, time);
         gain.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
         
-        osc.connect(gain);
-        gain.connect(masterGain);
-        
-        osc.start(time);
-        osc.stop(time + 0.5);
+        osc.connect(gain); gain.connect(masterGain);
+        osc.start(time); osc.stop(time + 0.5);
     }
 
     function playSnare(time, vel) {
-        // Body (tone)
+        // Body Tone
         let osc = audioCtx.createOscillator();
         let oscGain = audioCtx.createGain();
-        osc.frequency.setValueAtTime(180, time);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(200, time);
+        osc.frequency.exponentialRampToValueAtTime(100, time + 0.1);
         oscGain.gain.setValueAtTime(vel * 0.5, time);
         oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
-        osc.connect(oscGain);
-        oscGain.connect(masterGain);
+        osc.connect(oscGain); oscGain.connect(masterGain);
         
-        // Snap (noise)
+        // Noise Snappy Tail
         let noise = audioCtx.createBufferSource();
         noise.buffer = noiseBuffer;
         let noiseFilter = audioCtx.createBiquadFilter();
-        noiseFilter.type = 'highpass';
-        noiseFilter.frequency.value = 1000;
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.value = 2500;
         let noiseGain = audioCtx.createGain();
-        noiseGain.gain.setValueAtTime(vel * 0.8, time);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
-        
-        noise.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(masterGain);
+        noiseGain.gain.setValueAtTime(vel * 0.7, time);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+        noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(masterGain);
         
         osc.start(time); osc.stop(time + 0.2);
-        noise.start(time); noise.stop(time + 0.25);
+        noise.start(time); noise.stop(time + 0.3);
     }
 
     function playHat(time, vel) {
         let noise = audioCtx.createBufferSource();
         noise.buffer = noiseBuffer;
-        
         let filter = audioCtx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 5000;
-        
+        filter.frequency.value = 6000;
         let gain = audioCtx.createGain();
         gain.gain.setValueAtTime(vel * 0.3, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-        
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(masterGain);
-        
-        noise.start(time);
-        noise.stop(time + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1); // Slightly longer for lo-fi
+        noise.connect(filter); filter.connect(gain); gain.connect(masterGain);
+        noise.start(time); noise.stop(time + 0.1);
     }
 
-    function playChord(time, notes) {
-        // Rhodes-like Electric Piano
-        notes.forEach(note => {
+    function playChord(time, notes, isPluck = false) {
+        notes.forEach((note, index) => {
             let freq = midiToFreq(note);
             
+            // Layer 1: Warm Triangle
             let osc1 = audioCtx.createOscillator();
-            osc1.type = 'sine';
+            osc1.type = 'triangle';
             osc1.frequency.value = freq;
             
+            // Layer 2: Detuned Sine
             let osc2 = audioCtx.createOscillator();
-            osc2.type = 'triangle';
-            osc2.frequency.value = freq + 1.5; // Slight detune
+            osc2.type = 'sine';
+            osc2.frequency.value = freq + (Math.random() * 2 - 1); // Slight analog drift
             
             let gain = audioCtx.createGain();
-            // Soft attack, long decay
             gain.gain.setValueAtTime(0, time);
-            gain.gain.linearRampToValueAtTime(0.15, time + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 2.5);
             
-            // Tremolo (Amplitude modulation)
-            let tremLfo = audioCtx.createOscillator();
-            tremLfo.type = 'sine';
-            tremLfo.frequency.value = 4; // 4Hz tremolo
-            let tremGain = audioCtx.createGain();
-            tremGain.gain.value = 0.3; // depth
-            tremLfo.connect(tremGain.gain);
-            tremLfo.start(time);
-            
-            osc1.connect(gain);
-            osc2.connect(gain);
-            gain.connect(tremGain);
-            tremGain.connect(masterGain);
-            
-            osc1.start(time); osc1.stop(time + 2.5);
-            osc2.start(time); osc2.stop(time + 2.5);
-            tremLfo.stop(time + 2.5);
+            if (isPluck) {
+                // Short percussive attack (for active jams)
+                gain.gain.linearRampToValueAtTime(0.2, time + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 1.5);
+            } else {
+                // Swell / Pad attack
+                gain.gain.linearRampToValueAtTime(0.15, time + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 3.0);
+            }
+
+            // Sub-bass layer for root note
+            if (index === 0) {
+                let sub = audioCtx.createOscillator();
+                sub.type = 'sine';
+                sub.frequency.value = freq / 2;
+                let subGain = audioCtx.createGain();
+                subGain.gain.setValueAtTime(0, time);
+                subGain.gain.linearRampToValueAtTime(0.2, time + 0.05);
+                subGain.gain.exponentialRampToValueAtTime(0.001, time + 3.0);
+                sub.connect(subGain); subGain.connect(masterGain);
+                sub.start(time); sub.stop(time + 3.0);
+            }
+
+            osc1.connect(gain); osc2.connect(gain); gain.connect(masterGain);
+            osc1.start(time); osc1.stop(time + 3.0);
+            osc2.start(time); osc2.stop(time + 3.0);
         });
     }
 
-    function playBass(time, note) {
-        let osc = audioCtx.createOscillator();
-        osc.type = 'triangle';
-        osc.frequency.value = midiToFreq(note);
-        
-        let filter = audioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 400; // Deep bass
-        
-        let gain = audioCtx.createGain();
-        gain.gain.setValueAtTime(0, time);
-        gain.gain.linearRampToValueAtTime(0.6, time + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 1.0);
-        
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(masterGain);
-        
-        osc.start(time);
-        osc.stop(time + 1.0);
-    }
-    
     function playMelody(time, note) {
-        let osc = audioCtx.createOscillator();
-        osc.type = 'sine';
-        osc.frequency.value = midiToFreq(note);
+        // Plucky / Bell FM sound
+        let carrier = audioCtx.createOscillator();
+        let modulator = audioCtx.createOscillator();
+        let modGain = audioCtx.createGain();
+        let envGain = audioCtx.createGain();
+
+        carrier.type = 'sine';
+        modulator.type = 'sine';
         
-        let gain = audioCtx.createGain();
-        gain.gain.setValueAtTime(0, time);
-        gain.gain.linearRampToValueAtTime(0.15, time + 0.05);
-        gain.gain.setTargetAtTime(0, time + 0.2, 0.2);
+        let freq = midiToFreq(note);
+        carrier.frequency.value = freq;
+        modulator.frequency.value = freq * 2; // Octave up FM
         
-        osc.connect(gain);
-        gain.connect(masterGain);
+        modGain.gain.setValueAtTime(freq * 1.5, time); // Modulation index
+        modGain.gain.exponentialRampToValueAtTime(10, time + 0.2); // Snap attack
         
-        osc.start(time);
-        osc.stop(time + 1.0);
+        envGain.gain.setValueAtTime(0, time);
+        envGain.gain.linearRampToValueAtTime(0.1, time + 0.01);
+        envGain.gain.exponentialRampToValueAtTime(0.001, time + 1.0);
+
+        modulator.connect(modGain);
+        modGain.connect(carrier.frequency);
+        carrier.connect(envGain);
+        
+        // Add Delay to Melody
+        let delay = audioCtx.createDelay();
+        delay.delayTime.value = (60/bpm) * 0.75; // Dotted 8th note delay
+        let fbk = audioCtx.createGain();
+        fbk.gain.value = 0.3;
+        delay.connect(fbk); fbk.connect(delay);
+        envGain.connect(delay); delay.connect(masterGain);
+        envGain.connect(masterGain);
+
+        modulator.start(time); carrier.start(time);
+        modulator.stop(time + 1.0); carrier.stop(time + 1.0);
     }
 
-    // --- Sequencer Loop ---
-    function scheduleNote(stepNumber, time) {
-        // Add swing to odd 16th notes
-        let playTime = time;
-        if (stepNumber % 2 !== 0) playTime += swingAmount;
+    // --- Sequencer Generation ---
+    function randomizeSeed() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let str = '';
+        for(let i=0; i<6; i++) str += chars.charAt(Math.floor(Math.random() * chars.length));
+        document.getElementById('seedInput').value = `LOFI-${str}`;
+        generateProcedural();
+    }
 
-        if (seqKick[stepNumber]) playKick(playTime, seqKick[stepNumber]);
-        if (seqSnare[stepNumber]) playSnare(playTime, seqSnare[stepNumber]);
-        if (seqHat[stepNumber]) playHat(playTime, seqHat[stepNumber]);
+    function generateProcedural() {
+        rng = mulberry32(cyrb128(document.getElementById('seedInput').value));
+        activeChordIdx = null; // Reset overrides
+        updatePadUI();
+
+        seqKick.fill(0); seqSnare.fill(0); seqHat.fill(0);
+        seqChords.fill(null); seqMelody.fill(null);
+
+        // Core Hiphop Groove (2 bar pattern, repeated)
+        const kickBase = [1,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,  1,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,0,0];
+        const snareBase= [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0,  0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0];
         
-        if (seqChords[stepNumber]) playChord(playTime, seqChords[stepNumber]);
-        if (seqBass[stepNumber]) playBass(playTime, seqBass[stepNumber]);
-        if (seqMelody[stepNumber]) playMelody(playTime, seqMelody[stepNumber]);
+        for(let i=0; i<totalSteps; i++) {
+            let m2 = i % 32;
+            let m1 = i % 16;
+            
+            // Drums
+            if(kickBase[m2]) seqKick[i] = 1;
+            if(snareBase[m2]) seqSnare[i] = 1;
+            
+            // Dynamic Hats (accented on downbeats, loose velocity)
+            if(m1 % 2 === 0) seqHat[i] = 0.6 + rng()*0.2;
+            else if(rng() > 0.3) seqHat[i] = 0.2 + rng()*0.2;
+
+            // Ghost kicks/snares
+            if(!seqKick[i] && !seqSnare[i] && rng() > 0.9) {
+                if(rng()>0.5) seqKick[i] = 0.3; else seqSnare[i] = 0.2;
+            }
+        }
+
+        // Chords (Generate 4 bar progression)
+        let prog = [];
+        for(let i=0; i<4; i++) {
+            // Pick a random chord index
+            prog.push(Math.floor(rng() * chordsList.length));
+        }
+
+        for (let bar = 0; bar < loopBars; bar++) {
+            let chordIdx = prog[bar % 4];
+            let notes = chordsList[chordIdx];
+            
+            // Lay down chord on beat 1, maybe syncopate
+            let push = rng() > 0.7 ? -2 : 0; // Push 8th note early occasionally
+            let step = bar * 16 + push;
+            if(step >= 0) seqChords[step] = {idx: chordIdx, notes: notes};
+
+            // Procedural Melody matching the chord
+            for(let s=0; s<16; s++) {
+                if(rng() > 0.85) { // Sparse melody
+                    let notePool = cMinorPentatonic.concat(notes);
+                    let note = notePool[Math.floor(rng() * notePool.length)];
+                    seqMelody[bar * 16 + s] = note + (rng()>0.5 ? 12 : 0); // Occasional octave up
+                }
+            }
+        }
+    }
+
+    // --- Interactive "Machine" Controls ---
+    function triggerChord(idx) {
+        if(!audioCtx) initAudio();
+        activeChordIdx = idx;
+        let notes = chordsList[idx];
         
-        // Visuals
+        // Play immediately (as a plucked, active sound)
+        playChord(audioCtx.currentTime, notes, true);
+        
+        // Override the procedural chord for the next bar, OR current bar if early enough
+        let bar = Math.floor(currentStep / 16);
+        let barStep = currentStep % 16;
+        let targetBar = (barStep > 8) ? (bar + 1) % loopBars : bar;
+        
+        // Clear any existing chords in that bar
+        for(let i=0; i<16; i++) seqChords[targetBar * 16 + i] = null;
+        // Inject the new chord
+        seqChords[targetBar * 16] = {idx: idx, notes: notes};
+
+        updatePadUI();
+    }
+
+    function triggerRiff(state) {
+        autoRiffActive = state;
+    }
+
+    function triggerDrop(state) {
+        beatDropActive = state;
+    }
+
+    function updatePadUI() {
+        document.querySelectorAll('.pad.chord').forEach((btn, i) => {
+            if(i === activeChordIdx) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+
+    // --- Sequencer Engine ---
+    function scheduleStep(step, time) {
+        let playTime = time;
+        // Swing (delay odd 16ths)
+        if (step % 2 !== 0) playTime += swing;
+
+        // --- Live Overrides & Generation ---
+        
+        // 1. Maintain active chord state visually
+        if (seqChords[step]) {
+            activeChordIdx = seqChords[step].idx;
+            updatePadUI();
+            playChord(playTime, seqChords[step].notes, false);
+        }
+
+        // 2. Play Drums (unless Drop is active)
+        if (!beatDropActive) {
+            if (seqKick[step]) playKick(playTime, seqKick[step]);
+            if (seqSnare[step]) playSnare(playTime, seqSnare[step]);
+            if (seqHat[step]) playHat(playTime, seqHat[step]);
+        }
+
+        // 3. Play Melody or Auto-Riff
+        if (autoRiffActive) {
+            // Generate dense 16th/8th note run based on active chord
+            if (step % 2 === 0 || Math.random() > 0.5) {
+                let pool = activeChordIdx !== null ? chordsList[activeChordIdx] : cMinorPentatonic;
+                let note = pool[Math.floor(Math.random() * pool.length)] + 12; // High octave
+                playMelody(playTime, note);
+            }
+        } else {
+            // Play procedural sequence melody, but clamp to active chord if user overrode it
+            if (seqMelody[step]) {
+                let note = seqMelody[step];
+                // Simple diatonic snapping if we have an active chord
+                if (activeChordIdx !== null) {
+                    let chordNotes = chordsList[activeChordIdx];
+                    // Find closest note in current chord
+                    note = chordNotes.reduce((prev, curr) => 
+                        Math.abs((curr%12) - (note%12)) < Math.abs((prev%12) - (note%12)) ? curr : prev
+                    );
+                    note += 12; // Keep in melody range
+                }
+                playMelody(playTime, note);
+            }
+        }
+
+        // Visual Playhead
         setTimeout(() => {
-            let fill = (stepNumber / totalSteps) * 100;
-            document.getElementById('progressFill').style.width = fill + '%';
+            let pct = (step / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = pct + '%';
         }, (playTime - audioCtx.currentTime) * 1000);
     }
 
     function scheduler() {
         while (nextNoteTime < audioCtx.currentTime + 0.1) {
-            scheduleNote(currentStep, nextNoteTime);
-            // Advance time by 16th note
+            scheduleStep(currentStep, nextNoteTime);
             nextNoteTime += (60 / bpm) / 4;
             currentStep++;
-            if (currentStep >= totalSteps) currentStep = 0; // Loop 
+            if (currentStep >= totalSteps) currentStep = 0;
         }
         timerID = setTimeout(scheduler, 25);
     }
 
-    // --- Control ---
     function togglePlay() {
-        initAudio(); // Required to unlock audio context on interaction
+        initAudio(); 
         
         const btn = document.getElementById('playBtn');
-        const status = document.getElementById('statusText');
         
         if (isPlaying) {
             isPlaying = false;
             clearTimeout(timerID);
             if(audioCtx.state === 'running') audioCtx.suspend();
-            btn.innerText = "PLAY";
+            btn.innerHTML = "► PLAY";
             btn.classList.remove('playing');
-            status.innerText = "Stopped";
         } else {
-            generateSong(); // Generate fresh based on current seed/settings
+            if(!seqKick.some(x=>x>0)) generateProcedural(); // First time generation
             isPlaying = true;
             if(audioCtx.state === 'suspended') audioCtx.resume();
             
-            // Reset sequence trackers
             currentStep = 0;
             nextNoteTime = audioCtx.currentTime + 0.05;
             scheduler();
             
-            btn.innerText = "STOP";
+            btn.innerHTML = "◼ STOP";
             btn.classList.add('playing');
-            status.innerText = `Playing... (Approx 3.3 min loop @ ${bpm} BPM)`;
         }
     }
 
-    // Initial setup
-    document.getElementById('drumVal').innerText = 'Medium';
-    document.getElementById('melodyVal').innerText = 'Sparse';
+    // Initialize random seed on load
+    randomizeSeed();
 </script>
 
 </body>
