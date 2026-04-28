@@ -3,23 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lo-Fi Song Machine</title>
+    <title>Lo-Fi MIDI Machine</title>
     <style>
         :root {
-            --bg: #121216;
-            --panel: #1e1e24;
+            --bg: #1a1a1c;
+            --machine: #242428;
+            --machine-border: #35353a;
             --text: #e0e0e0;
-            --pad-chord: #ff79c6;
-            --pad-riff: #8be9fd;
-            --pad-fx: #ffb86c;
-            --accent: #bd93f9;
-            --radius: 16px;
+            --accent-red: #e74c3c;
+            --accent-red-glow: #ff4757;
+            --screen-bg: #050505;
+            --screen-text: #00ff41;
+            --pad-black: #1a1a1a;
+            --pad-lit: #e74c3c;
+            --knob-bg: #333;
+            --knob-ind: #fff;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -31,91 +35,148 @@
         }
 
         .machine {
-            background: linear-gradient(145deg, #23232a, #1a1a1f);
-            padding: 30px;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 2px 2px rgba(255,255,255,0.05);
+            background: var(--machine);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.05);
             width: 100%;
-            max-width: 600px;
-            box-sizing: border-box;
-            border: 1px solid #333;
+            max-width: 650px;
+            border: 2px solid var(--machine-border);
+            border-bottom: 8px solid #111; /* Chunky base */
         }
 
-        .screen {
-            background: #0a0a0c;
-            border: 2px solid #333;
-            border-radius: var(--radius);
-            padding: 15px;
-            margin-bottom: 25px;
-            box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .screen h1 {
-            margin: 0 0 10px 0;
-            font-size: 1.2rem;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-
-        .top-controls {
+        /* Top Screen / Share Bar */
+        .header-bar {
             display: flex;
             gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
         input[type="text"] {
             flex: 1;
-            padding: 10px;
-            background: #111;
-            border: 1px solid #444;
-            color: var(--accent);
-            font-family: monospace;
-            font-size: 1rem;
-            border-radius: 8px;
+            padding: 12px;
+            background: var(--screen-bg);
+            border: 2px solid #222;
+            color: var(--screen-text);
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 6px;
             text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,255,65,0.1);
+            text-shadow: 0 0 5px rgba(0,255,65,0.5);
         }
 
-        button.util {
-            background: #333;
+        .btn {
+            background: var(--knob-bg);
             color: #fff;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
+            border: 2px solid #222;
+            padding: 0 20px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.1s;
+            box-shadow: 0 4px 0 #111;
         }
-        
-        button.util:active { transform: scale(0.95); }
+        .btn:active { transform: translateY(4px); box-shadow: 0 0 0 #111; }
 
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #222;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: var(--accent);
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        .section-label {
-            font-size: 0.8rem;
-            color: #888;
-            margin: 20px 0 10px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* Big Knobs & Displays */
+        .macro-section {
             display: flex;
-            justify-content: space-between;
+            gap: 20px;
+            background: #1e1e22;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .macro-module {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .macro-label { font-size: 0.75rem; color: #888; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;}
+
+        .digital-display {
+            background: var(--screen-bg);
+            color: var(--accent-red-glow);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 8px;
+            width: 100%;
+            text-align: center;
+            border-radius: 4px;
+            border: 2px solid #111;
+            box-shadow: inset 0 0 10px rgba(255, 71, 87, 0.2);
+            text-shadow: 0 0 5px rgba(255, 71, 87, 0.8);
+            box-sizing: border-box;
+            height: 38px;
+        }
+
+        /* Rotary Knob Component */
+        .knob-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .knob {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #3a3a40, #25252a);
+            box-shadow: 0 8px 10px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.1);
+            position: relative;
+            cursor: ns-resize; /* Up/down drag cursor */
+            border: 2px solid #111;
+        }
+
+        .knob-indicator {
+            width: 4px;
+            height: 50%;
+            background: var(--knob-ind);
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(-135deg); /* Min value */
+            border-radius: 2px;
+            box-shadow: 0 0 5px rgba(255,255,255,0.5);
+            pointer-events: none;
+        }
+
+        .knob-small { width: 45px; height: 45px; }
+
+        /* Chord Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .tab {
+            flex: 1;
+            background: #2a2a30;
+            color: #888;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            border: 1px solid #333;
+            border-bottom: none;
+        }
+
+        .tab.active {
+            background: #1e1e22;
+            color: var(--accent-red);
+            border-top: 2px solid var(--accent-red);
         }
 
         /* Hardware Pads */
@@ -123,126 +184,131 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
-            margin-bottom: 20px;
+            background: #1e1e22;
+            padding: 15px;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #333;
+            border-top: none;
         }
 
         .pad {
-            aspect-ratio: 1.5;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 800;
-            color: #111;
+            aspect-ratio: 1.3;
+            background: var(--pad-black);
+            border: 2px solid #111;
+            border-radius: 4px;
+            color: #666;
+            font-weight: bold;
+            font-size: 0.9rem;
             cursor: pointer;
-            box-shadow: 0 6px 0 rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.4);
-            transition: 0.1s;
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.05), 0 5px 0 #0a0a0a;
+            transition: 0.05s;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            line-height: 1.2;
         }
 
-        .pad span { font-size: 0.7rem; opacity: 0.8; font-weight: 500; }
+        .pad span { font-size: 0.65rem; color: #444; margin-top: 4px; }
 
         .pad:active, .pad.active {
-            box-shadow: 0 2px 0 rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.2);
+            box-shadow: inset 0 2px 15px rgba(231, 76, 60, 0.4), 0 1px 0 #0a0a0a;
             transform: translateY(4px);
+            color: #fff;
+            border-color: var(--accent-red);
+        }
+        
+        .pad:active span, .pad.active span { color: #aaa; }
+
+        /* Bottom Mix / Play Section */
+        .bottom-section {
+            display: flex;
+            margin-top: 20px;
+            gap: 20px;
+            align-items: center;
         }
 
-        .pad.chord { background: var(--pad-chord); }
-        .pad.chord.active { filter: brightness(1.3); box-shadow: 0 0 20px var(--pad-chord); transform: translateY(4px); }
-        
-        .pad.riff { background: var(--pad-riff); }
-        .pad.fx { background: var(--pad-fx); }
-
-        .transport {
+        .mix-knobs {
             display: flex;
-            gap: 15px;
+            gap: 20px;
+            flex: 1;
         }
 
         .play-btn {
-            flex: 2;
-            padding: 20px;
-            background: var(--accent);
+            background: var(--accent-red);
             color: #fff;
             font-size: 1.2rem;
             font-weight: bold;
+            padding: 15px 40px;
             border: none;
-            border-radius: 12px;
+            border-radius: 6px;
             cursor: pointer;
-            box-shadow: 0 6px 0 #7a50b8, inset 0 2px 2px rgba(255,255,255,0.3);
-            transition: 0.1s;
+            box-shadow: 0 6px 0 #a93226;
         }
-
-        .play-btn:active {
-            box-shadow: 0 2px 0 #7a50b8;
-            transform: translateY(4px);
-        }
-
-        .play-btn.playing {
-            background: #ff5555;
-            box-shadow: 0 6px 0 #b33939;
-        }
-
-        /* Knobs/Sliders */
-        .knobs { display: flex; gap: 15px; }
-        .knob-container { flex: 1; text-align: center; }
-        input[type="range"] {
-            width: 100%;
-            accent-color: var(--accent);
-        }
+        .play-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #a93226; }
+        .play-btn.playing { background: #2ecc71; box-shadow: 0 6px 0 #229954; }
 
     </style>
 </head>
 <body>
 
 <div class="machine">
-    <div class="screen">
-        <h1>LØ-FÏ SØNG MÄCHINË</h1>
-        <div class="top-controls">
-            <input type="text" id="seedInput" value="DREAM-01" placeholder="Seed...">
-            <button class="util" onclick="randomizeSeed()">🎲</button>
-            <button class="util" onclick="generateProcedural()">GENERATE</button>
+    <!-- Screen & Share -->
+    <div class="header-bar">
+        <input type="text" id="seedInput" value="DREAM-M1-D1" onchange="parseSeedFromInput()">
+        <button class="btn" onclick="randomizeSeed()">🎲</button>
+    </div>
+
+    <!-- Big Digital Macro Knobs -->
+    <div class="macro-section">
+        <div class="macro-module">
+            <span class="macro-label">Melody Engine</span>
+            <div class="digital-display" id="melDisplay">1: SPARSE</div>
+            <div class="knob-container">
+                <div class="knob" id="knob-melody" data-min="1" data-max="4" data-val="1">
+                    <div class="knob-indicator"></div>
+                </div>
+            </div>
         </div>
-        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    </div>
-
-    <div class="section-label">LIVE COMPOSE (Overrides sequence)</div>
-    <div class="pad-grid">
-        <button class="pad chord" onclick="triggerChord(0)" id="pad-chord-0">Cm9 <span>(i)</span></button>
-        <button class="pad chord" onclick="triggerChord(1)" id="pad-chord-1">Fm9 <span>(iv)</span></button>
-        <button class="pad chord" onclick="triggerChord(2)" id="pad-chord-2">Gm7 <span>(v)</span></button>
-        <button class="pad chord" onclick="triggerChord(3)" id="pad-chord-3">Ebmaj9 <span>(III)</span></button>
-        <button class="pad chord" onclick="triggerChord(4)" id="pad-chord-4">Abmaj9 <span>(VI)</span></button>
-        <button class="pad chord" onclick="triggerChord(5)" id="pad-chord-5">Bbdom9 <span>(VII)</span></button>
-    </div>
-
-    <div class="section-label">PERFORMANCE FX</div>
-    <div class="pad-grid" style="grid-template-columns: repeat(2, 1fr);">
-        <button class="pad riff" onmousedown="triggerRiff(true)" onmouseup="triggerRiff(false)" onmouseleave="triggerRiff(false)">
-            🎹 AUTO-RIFF
-            <span>(Hold to Solo)</span>
-        </button>
-        <button class="pad fx" onmousedown="triggerDrop(true)" onmouseup="triggerDrop(false)" onmouseleave="triggerDrop(false)">
-            🔇 BEAT DROP
-            <span>(Hold to Mute Drums)</span>
-        </button>
-    </div>
-
-    <div class="section-label">MIX</div>
-    <div class="knobs">
-        <div class="knob-container">
-            <span style="font-size: 12px; color: #888;">Vinyl Dust</span>
-            <input type="range" id="lofiAmount" min="0" max="100" value="70">
-        </div>
-        <div class="knob-container">
-            <span style="font-size: 12px; color: #888;">Tape Wobble</span>
-            <input type="range" id="wobbleAmount" min="0" max="100" value="50">
+        <div class="macro-module">
+            <span class="macro-label">Drum Groove</span>
+            <div class="digital-display" id="drumDisplay">1: BOOM BAP</div>
+            <div class="knob-container">
+                <div class="knob" id="knob-drum" data-min="1" data-max="4" data-val="1">
+                    <div class="knob-indicator"></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="transport" style="margin-top: 25px;">
+    <!-- Chord Tabs -->
+    <div class="tabs">
+        <div class="tab active" onclick="setTab(0)">MINOR</div>
+        <div class="tab" onclick="setTab(1)">MAJOR</div>
+        <div class="tab" onclick="setTab(2)">NEO-SOUL</div>
+        <div class="tab" onclick="setTab(3)">DARK/DIM</div>
+    </div>
+
+    <!-- Pads -->
+    <div class="pad-grid" id="padContainer">
+        <!-- Injected via JS -->
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="bottom-section">
+        <div class="mix-knobs">
+            <div class="knob-container">
+                <span class="macro-label">Dust</span>
+                <div class="knob knob-small" id="knob-dust" data-min="0" data-max="100" data-val="60">
+                    <div class="knob-indicator"></div>
+                </div>
+            </div>
+            <div class="knob-container">
+                <span class="macro-label">Wobble</span>
+                <div class="knob knob-small" id="knob-wobble" data-min="0" data-max="100" data-val="40">
+                    <div class="knob-indicator"></div>
+                </div>
+            </div>
+        </div>
         <button class="play-btn" id="playBtn" onclick="togglePlay()">► PLAY</button>
     </div>
 </div>
@@ -252,21 +318,18 @@
     let audioCtx;
     let isPlaying = false;
     let timerID;
-    
-    const bpm = 82;
-    const stepsPerBar = 16;
-    const loopBars = 16; 
-    const totalSteps = loopBars * stepsPerBar; // 256 steps loop
-    const swing = 0.04;
-    
-    let currentStep = 0;
-    let nextNoteTime = 0;
     let rng = Math.random;
+    
+    const bpm = 80;
+    const totalSteps = 256; // 16 bars
+    let currentStep = 0, nextNoteTime = 0;
 
-    // Performance Overrides
-    let activeChordIdx = null; // Set when user presses a pad
-    let autoRiffActive = false;
-    let beatDropActive = false;
+    // Macro States
+    let currentMelodyType = 1;
+    let currentDrumType = 1;
+    let currentBaseSeed = "DREAM";
+    let activeChordOverride = null; // Holds notes array if pad is held/active
+    let activeTab = 0;
 
     // Sequences
     let seqKick = new Array(totalSteps).fill(0);
@@ -274,514 +337,429 @@
     let seqHat = new Array(totalSteps).fill(0);
     let seqChords = new Array(totalSteps).fill(null);
     let seqMelody = new Array(totalSteps).fill(null);
-    
-    // Audio Nodes
-    let masterGain, compressor, tapeSaturator, tapeDelay, lowpass, reverbNode;
-    let vinylNoiseNode, crackleGain;
+
+    // DSP Nodes
+    let masterGain, tapeDelay, lowpass, crackleGain, lfoGain;
     let noiseBuffer;
 
-    // --- Music Theory ---
-    // Key: C Minor
+    // --- Music Theory Data ---
     const C3 = 48;
-    const chordsList = [
-        [C3, C3+3, C3+7, C3+10, C3+14],        // 0: Cm9 (i)
-        [C3+5, C3+8, C3+12, C3+15, C3+19],     // 1: Fm9 (iv)
-        [C3+7, C3+10, C3+14, C3+17],           // 2: Gm7 (v)
-        [C3+3, C3+7, C3+10, C3+14, C3+17],     // 3: Ebmaj9 (III)
-        [C3+8, C3+12, C3+15, C3+19, C3+22],    // 4: Abmaj9 (VI)
-        [C3+10, C3+14, C3+17, C3+20, C3+24]    // 5: Bbdom9 (VII)
+    const chordBanks = [
+        // Tab 0: Minor (Melancholy)
+        [
+            { n: "Cm9", v: [C3, C3+3, C3+7, C3+10, C3+14] },
+            { n: "Fm9", v: [C3+5, C3+8, C3+12, C3+15, C3+19] },
+            { n: "Gm7", v: [C3+7, C3+10, C3+14, C3+17] },
+            { n: "EbMaj9", v: [C3+3, C3+7, C3+10, C3+14, C3+17] },
+            { n: "AbMaj9", v: [C3+8, C3+12, C3+15, C3+19, C3+22] },
+            { n: "BbDom9", v: [C3+10, C3+14, C3+17, C3+20, C3+24] }
+        ],
+        // Tab 1: Major (Uplifting/Chill)
+        [
+            { n: "Cmaj9", v: [C3, C3+4, C3+7, C3+11, C3+14] },
+            { n: "Dm9", v: [C3+2, C3+5, C3+9, C3+12, C3+16] },
+            { n: "Em7", v: [C3+4, C3+7, C3+11, C3+14] },
+            { n: "Fmaj9", v: [C3+5, C3+9, C3+12, C3+16, C3+19] },
+            { n: "G13", v: [C3+7, C3+11, C3+14, C3+17, C3+21] },
+            { n: "Am9", v: [C3+9, C3+12, C3+16, C3+19, C3+23] }
+        ],
+        // Tab 2: Neo-Soul (Jazzy/Spicy)
+        [
+            { n: "Cm11", v: [C3, C3+3, C3+7, C3+10, C3+14, C3+17] },
+            { n: "DbMaj9", v: [C3+1, C3+5, C3+8, C3+12, C3+15] },
+            { n: "Ebmin9", v: [C3+3, C3+6, C3+10, C3+13, C3+17] },
+            { n: "Ab13", v: [C3-4, C3+2, C3+6, C3+9, C3+13] },
+            { n: "G7#5#9", v: [C3-5, C3+3, C3+6, C3+11, C3+14] },
+            { n: "Cm9", v: [C3, C3+3, C3+7, C3+10, C3+14] }
+        ],
+        // Tab 3: Dark/Dim (Tension)
+        [
+            { n: "Cm(M7)", v: [C3, C3+3, C3+7, C3+11] },
+            { n: "Fdim7", v: [C3+5, C3+8, C3+11, C3+14] },
+            { n: "G7b9", v: [C3+7, C3+11, C3+14, C3+17, C3+20] },
+            { n: "Abm6", v: [C3+8, C3+11, C3+15, C3+17] },
+            { n: "Bdim7", v: [C3+11, C3+14, C3+17, C3+20] },
+            { n: "Cm9", v: [C3, C3+3, C3+7, C3+10, C3+14] }
+        ]
     ];
 
-    const cMinorPentatonic = [C3, C3+3, C3+5, C3+7, C3+10, C3+12, C3+15, C3+17, C3+19, C3+22, C3+24];
+    const melNames = ["1: SPARSE", "2: ARPS", "3: LIKCS", "4: DREAMY"];
+    const drumNames = ["1: BOOM BAP", "2: MINIMAL", "3: BUSY", "4: HEAVY"];
 
-    // --- PRNG ---
+    // PRNG
     function cyrb128(str) {
-        let h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
-        for (let i = 0; i < str.length; i++) {
-            let k = str.charCodeAt(i);
-            h1 = h2 ^ Math.imul(h1 ^ k, 597399067); h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
-            h3 = h4 ^ Math.imul(h3 ^ k, 951274213); h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+        let h1=1779033703, h2=3144134277, h3=1013904242, h4=2773480762;
+        for(let i=0;i<str.length;i++){
+            let k=str.charCodeAt(i);
+            h1=h2^Math.imul(h1^k,597399067); h2=h3^Math.imul(h2^k,2869860233);
+            h3=h4^Math.imul(h3^k,951274213); h4=h1^Math.imul(h4^k,2716044179);
         }
-        h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067); h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
-        h3 = Math.imul(h1 ^ (h3 >>> 17), 2716044179); h4 = Math.imul(h2 ^ (h4 >>> 19), 951274213);
-        return (h1^h2^h3^h4)>>>0;
+        return (Math.imul(h3^(h1>>>18),597399067)^Math.imul(h4^(h2>>>22),2869860233))>>>0;
     }
     function mulberry32(a) {
-        return function() {
-            var t = a += 0x6D2B79F5;
-            t = Math.imul(t ^ t >>> 15, t | 1);
-            t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        return function(){
+            var t=a+=0x6D2B79F5;
+            t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61);
+            return ((t^t>>>14)>>>0)/4294967296;
         }
     }
-
     function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 
-    // --- High Quality DSP Generation ---
-    function createReverb() {
-        // Generate Synthetic Impulse Response for Reverb
-        let len = audioCtx.sampleRate * 2.5;
-        let impulse = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
-        for (let i = 0; i < 2; i++) {
-            let channel = impulse.getChannelData(i);
-            for (let j = 0; j < len; j++) {
-                // Exponential decay noise
-                channel[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / len, 4);
+    // --- UI Logic (Knobs, Tabs, Pads) ---
+    function initKnobs() {
+        document.querySelectorAll('.knob').forEach(el => {
+            let min = parseFloat(el.getAttribute('data-min'));
+            let max = parseFloat(el.getAttribute('data-max'));
+            let val = parseFloat(el.getAttribute('data-val'));
+            let ind = el.querySelector('.knob-indicator');
+            
+            function updateAngle(v) {
+                let pct = (v - min) / (max - min);
+                let deg = -135 + (pct * 270);
+                ind.style.transform = `translateX(-50%) rotate(${deg}deg)`;
             }
+            updateAngle(val);
+
+            let isDragging = false;
+            let startY, startVal;
+
+            function onStart(e) {
+                isDragging = true;
+                startY = e.touches ? e.touches[0].clientY : e.clientY;
+                startVal = parseFloat(el.getAttribute('data-val'));
+            }
+            function onMove(e) {
+                if(!isDragging) return;
+                let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                let delta = startY - clientY; 
+                let range = max - min;
+                let newVal = Math.max(min, Math.min(max, startVal + (delta / 100) * range));
+                
+                // If it's a macro knob (1-4), round to integer
+                if(max <= 4) newVal = Math.round(newVal);
+                
+                el.setAttribute('data-val', newVal);
+                updateAngle(newVal);
+                handleKnobChange(el.id, newVal);
+            }
+            function onEnd() { isDragging = false; }
+
+            el.addEventListener('mousedown', onStart);
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onEnd);
+            
+            el.addEventListener('touchstart', onStart, {passive:true});
+            window.addEventListener('touchmove', onMove, {passive:true});
+            window.addEventListener('touchend', onEnd);
+        });
+    }
+
+    function handleKnobChange(id, val) {
+        if (id === 'knob-melody') {
+            currentMelodyType = val;
+            document.getElementById('melDisplay').innerText = melNames[val-1];
+            updateSeedString();
+        } else if (id === 'knob-drum') {
+            currentDrumType = val;
+            document.getElementById('drumDisplay').innerText = drumNames[val-1];
+            updateSeedString();
+        } else if (id === 'knob-dust' && crackleGain) {
+            crackleGain.gain.value = (val / 100) * 0.05;
+            lowpass.frequency.value = 6000 - ((val / 100) * 4500);
+        } else if (id === 'knob-wobble' && lfoGain) {
+            lfoGain.gain.value = (val / 100) * 0.003;
         }
-        let convolver = audioCtx.createConvolver();
-        convolver.buffer = impulse;
-        return convolver;
     }
 
-    function createDistortionCurve(amount) {
-        let k = typeof amount === 'number' ? amount : 50,
-            n_samples = 44100, curve = new Float32Array(n_samples),
-            deg = Math.PI / 180, i = 0, x;
-        for ( ; i < n_samples; ++i ) {
-            x = i * 2 / n_samples - 1;
-            curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
+    function setKnobValue(id, val) {
+        let el = document.getElementById(id);
+        el.setAttribute('data-val', val);
+        let min = parseFloat(el.getAttribute('data-min'));
+        let max = parseFloat(el.getAttribute('data-max'));
+        let ind = el.querySelector('.knob-indicator');
+        let pct = (val - min) / (max - min);
+        ind.style.transform = `translateX(-50%) rotate(${-135 + (pct * 270)}deg)`;
+        handleKnobChange(id, val);
+    }
+
+    // Tabs & Pads
+    function setTab(idx) {
+        activeTab = idx;
+        document.querySelectorAll('.tab').forEach((t, i) => {
+            t.classList.toggle('active', i === idx);
+        });
+        renderPads();
+    }
+
+    function renderPads() {
+        let container = document.getElementById('padContainer');
+        container.innerHTML = '';
+        chordBanks[activeTab].forEach((chord, i) => {
+            let btn = document.createElement('button');
+            btn.className = 'pad';
+            btn.innerHTML = `${chord.n} <span>Pad 0${i+1}</span>`;
+            
+            // Interaction
+            btn.onmousedown = () => playPad(btn, chord.v);
+            btn.ontouchstart = (e) => { e.preventDefault(); playPad(btn, chord.v); }
+            btn.onmouseup = () => activeChordOverride = null;
+            btn.ontouchend = () => activeChordOverride = null;
+            btn.onmouseleave = () => activeChordOverride = null;
+            
+            container.appendChild(btn);
+        });
+    }
+
+    function playPad(btn, notes) {
+        if(!audioCtx) initAudio();
+        // Visual feedback
+        document.querySelectorAll('.pad').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        
+        activeChordOverride = notes; // Override generator
+        playSynthChord(audioCtx.currentTime, notes, true); // Play instantly
+    }
+
+    // --- Seed Management ---
+    function updateSeedString() {
+        let s = `${currentBaseSeed}-M${currentMelodyType}-D${currentDrumType}`;
+        document.getElementById('seedInput').value = s;
+        if(isPlaying) generateProcedural(); // Re-calc arrays on the fly
+    }
+
+    function parseSeedFromInput() {
+        let str = document.getElementById('seedInput').value.trim().toUpperCase();
+        let match = str.match(/^([A-Z0-9]+)(?:-M([1-4]))?(?:-D([1-4]))?$/);
+        if(match) {
+            currentBaseSeed = match[1];
+            if(match[2]) setKnobValue('knob-melody', parseInt(match[2]));
+            if(match[3]) setKnobValue('knob-drum', parseInt(match[3]));
+            generateProcedural();
+        } else {
+            // Revert on invalid
+            updateSeedString();
         }
-        return curve;
     }
 
-    function initAudio() {
-        if(audioCtx) return;
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Master Chain
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.7;
-
-        compressor = audioCtx.createDynamicsCompressor();
-        compressor.threshold.value = -20;
-        compressor.ratio.value = 4;
-        compressor.attack.value = 0.01;
-        compressor.release.value = 0.2;
-
-        tapeSaturator = audioCtx.createWaveShaper();
-        tapeSaturator.curve = createDistortionCurve(10); 
-        tapeSaturator.oversample = '2x';
-
-        // Tape Wobble (Chorus/Vibrato)
-        tapeDelay = audioCtx.createDelay(0.1);
-        tapeDelay.delayTime.value = 0.005;
-        let lfo = audioCtx.createOscillator();
-        lfo.type = 'sine';
-        lfo.frequency.value = 0.3; // 0.3Hz slow wobble
-        let lfoGain = audioCtx.createGain();
-        lfoGain.gain.value = 0.001; // Depth (updated via UI)
-        lfo.connect(lfoGain);
-        lfoGain.connect(tapeDelay.delayTime);
-        lfo.start();
-
-        lowpass = audioCtx.createBiquadFilter();
-        lowpass.type = 'lowpass';
-        lowpass.frequency.value = 3500; // Warm Lo-Fi sound
-
-        reverbNode = createReverb();
-        let revGain = audioCtx.createGain();
-        revGain.gain.value = 0.15; // Reverb mix amount
-        
-        // Routing: Master -> Compressor -> Saturation -> Wobble -> Lowpass -> Out
-        masterGain.connect(compressor);
-        compressor.connect(tapeSaturator);
-        tapeSaturator.connect(tapeDelay);
-        tapeDelay.connect(lowpass);
-        lowpass.connect(audioCtx.destination);
-
-        // Reverb Send
-        tapeDelay.connect(reverbNode);
-        reverbNode.connect(revGain);
-        revGain.connect(lowpass);
-
-        // Noise buffer
-        noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
-        let output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < audioCtx.sampleRate * 2; i++) output[i] = Math.random() * 2 - 1;
-
-        startVinylCrackle();
-
-        // Bind UI Controls
-        document.getElementById('wobbleAmount').addEventListener('input', (e) => {
-            lfoGain.gain.value = (e.target.value / 100) * 0.003;
-        });
-        document.getElementById('lofiAmount').addEventListener('input', (e) => {
-            crackleGain.gain.value = (e.target.value / 100) * 0.05;
-            lowpass.frequency.value = 6000 - ((e.target.value / 100) * 4500); // 1500Hz max lo-fi
-        });
-        // trigger initial values
-        document.getElementById('wobbleAmount').dispatchEvent(new Event('input'));
-        document.getElementById('lofiAmount').dispatchEvent(new Event('input'));
-    }
-
-    function startVinylCrackle() {
-        vinylNoiseNode = audioCtx.createBufferSource();
-        vinylNoiseNode.buffer = noiseBuffer;
-        vinylNoiseNode.loop = true;
-        
-        let noiseFilter = audioCtx.createBiquadFilter();
-        noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.value = 2000;
-        noiseFilter.Q.value = 0.5;
-        
-        crackleGain = audioCtx.createGain();
-        crackleGain.gain.value = 0.035;
-        
-        vinylNoiseNode.connect(noiseFilter);
-        noiseFilter.connect(crackleGain);
-        crackleGain.connect(masterGain);
-        vinylNoiseNode.start();
-
-        // Random Dust Pops
-        setInterval(() => {
-            if(!isPlaying) return;
-            if(Math.random() > (document.getElementById('lofiAmount').value / 100)) return;
-            let pop = audioCtx.createOscillator();
-            pop.type = 'sine';
-            pop.frequency.setValueAtTime(600, audioCtx.currentTime);
-            pop.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.02);
-            let pGain = audioCtx.createGain();
-            pGain.gain.setValueAtTime(crackleGain.gain.value * 2, audioCtx.currentTime);
-            pGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
-            pop.connect(pGain); pGain.connect(masterGain);
-            pop.start(); pop.stop(audioCtx.currentTime + 0.02);
-        }, 500);
-    }
-
-    // --- Instrument DSP ---
-    function playKick(time, vel) {
-        let osc = audioCtx.createOscillator();
-        let gain = audioCtx.createGain();
-        // Pitch Envelope for punch
-        osc.frequency.setValueAtTime(150, time);
-        osc.frequency.exponentialRampToValueAtTime(40, time + 0.05);
-        osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
-        // Amp Envelope
-        gain.gain.setValueAtTime(vel, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
-        
-        osc.connect(gain); gain.connect(masterGain);
-        osc.start(time); osc.stop(time + 0.5);
-    }
-
-    function playSnare(time, vel) {
-        // Body Tone
-        let osc = audioCtx.createOscillator();
-        let oscGain = audioCtx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(200, time);
-        osc.frequency.exponentialRampToValueAtTime(100, time + 0.1);
-        oscGain.gain.setValueAtTime(vel * 0.5, time);
-        oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
-        osc.connect(oscGain); oscGain.connect(masterGain);
-        
-        // Noise Snappy Tail
-        let noise = audioCtx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        let noiseFilter = audioCtx.createBiquadFilter();
-        noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.value = 2500;
-        let noiseGain = audioCtx.createGain();
-        noiseGain.gain.setValueAtTime(vel * 0.7, time);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
-        noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(masterGain);
-        
-        osc.start(time); osc.stop(time + 0.2);
-        noise.start(time); noise.stop(time + 0.3);
-    }
-
-    function playHat(time, vel) {
-        let noise = audioCtx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        let filter = audioCtx.createBiquadFilter();
-        filter.type = 'highpass';
-        filter.frequency.value = 6000;
-        let gain = audioCtx.createGain();
-        gain.gain.setValueAtTime(vel * 0.3, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1); // Slightly longer for lo-fi
-        noise.connect(filter); filter.connect(gain); gain.connect(masterGain);
-        noise.start(time); noise.stop(time + 0.1);
-    }
-
-    function playChord(time, notes, isPluck = false) {
-        notes.forEach((note, index) => {
-            let freq = midiToFreq(note);
-            
-            // Layer 1: Warm Triangle
-            let osc1 = audioCtx.createOscillator();
-            osc1.type = 'triangle';
-            osc1.frequency.value = freq;
-            
-            // Layer 2: Detuned Sine
-            let osc2 = audioCtx.createOscillator();
-            osc2.type = 'sine';
-            osc2.frequency.value = freq + (Math.random() * 2 - 1); // Slight analog drift
-            
-            let gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(0, time);
-            
-            if (isPluck) {
-                // Short percussive attack (for active jams)
-                gain.gain.linearRampToValueAtTime(0.2, time + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.001, time + 1.5);
-            } else {
-                // Swell / Pad attack
-                gain.gain.linearRampToValueAtTime(0.15, time + 0.1);
-                gain.gain.exponentialRampToValueAtTime(0.001, time + 3.0);
-            }
-
-            // Sub-bass layer for root note
-            if (index === 0) {
-                let sub = audioCtx.createOscillator();
-                sub.type = 'sine';
-                sub.frequency.value = freq / 2;
-                let subGain = audioCtx.createGain();
-                subGain.gain.setValueAtTime(0, time);
-                subGain.gain.linearRampToValueAtTime(0.2, time + 0.05);
-                subGain.gain.exponentialRampToValueAtTime(0.001, time + 3.0);
-                sub.connect(subGain); subGain.connect(masterGain);
-                sub.start(time); sub.stop(time + 3.0);
-            }
-
-            osc1.connect(gain); osc2.connect(gain); gain.connect(masterGain);
-            osc1.start(time); osc1.stop(time + 3.0);
-            osc2.start(time); osc2.stop(time + 3.0);
-        });
-    }
-
-    function playMelody(time, note) {
-        // Plucky / Bell FM sound
-        let carrier = audioCtx.createOscillator();
-        let modulator = audioCtx.createOscillator();
-        let modGain = audioCtx.createGain();
-        let envGain = audioCtx.createGain();
-
-        carrier.type = 'sine';
-        modulator.type = 'sine';
-        
-        let freq = midiToFreq(note);
-        carrier.frequency.value = freq;
-        modulator.frequency.value = freq * 2; // Octave up FM
-        
-        modGain.gain.setValueAtTime(freq * 1.5, time); // Modulation index
-        modGain.gain.exponentialRampToValueAtTime(10, time + 0.2); // Snap attack
-        
-        envGain.gain.setValueAtTime(0, time);
-        envGain.gain.linearRampToValueAtTime(0.1, time + 0.01);
-        envGain.gain.exponentialRampToValueAtTime(0.001, time + 1.0);
-
-        modulator.connect(modGain);
-        modGain.connect(carrier.frequency);
-        carrier.connect(envGain);
-        
-        // Add Delay to Melody
-        let delay = audioCtx.createDelay();
-        delay.delayTime.value = (60/bpm) * 0.75; // Dotted 8th note delay
-        let fbk = audioCtx.createGain();
-        fbk.gain.value = 0.3;
-        delay.connect(fbk); fbk.connect(delay);
-        envGain.connect(delay); delay.connect(masterGain);
-        envGain.connect(masterGain);
-
-        modulator.start(time); carrier.start(time);
-        modulator.stop(time + 1.0); carrier.stop(time + 1.0);
-    }
-
-    // --- Sequencer Generation ---
     function randomizeSeed() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let str = '';
-        for(let i=0; i<6; i++) str += chars.charAt(Math.floor(Math.random() * chars.length));
-        document.getElementById('seedInput').value = `LOFI-${str}`;
-        generateProcedural();
+        for(let i=0; i<5; i++) str += chars.charAt(Math.floor(Math.random() * chars.length));
+        currentBaseSeed = str;
+        setKnobValue('knob-melody', Math.floor(Math.random()*4)+1);
+        setKnobValue('knob-drum', Math.floor(Math.random()*4)+1);
     }
 
+    // --- Generator Logic ---
     function generateProcedural() {
-        rng = mulberry32(cyrb128(document.getElementById('seedInput').value));
-        activeChordIdx = null; // Reset overrides
-        updatePadUI();
+        // Tie PRNG to full seed string so identical strings = identical beats
+        let fullSeed = `${currentBaseSeed}-M${currentMelodyType}-D${currentDrumType}`;
+        rng = mulberry32(cyrb128(fullSeed));
 
         seqKick.fill(0); seqSnare.fill(0); seqHat.fill(0);
         seqChords.fill(null); seqMelody.fill(null);
 
-        // Core Hiphop Groove (2 bar pattern, repeated)
-        const kickBase = [1,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,  1,0,0,0, 0,0,0,0, 0,0,1,0, 0,1,0,0];
-        const snareBase= [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0,  0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0];
-        
+        // Drums Generation
         for(let i=0; i<totalSteps; i++) {
-            let m2 = i % 32;
-            let m1 = i % 16;
+            let m1 = i % 16; // step in bar
             
-            // Drums
-            if(kickBase[m2]) seqKick[i] = 1;
-            if(snareBase[m2]) seqSnare[i] = 1;
-            
-            // Dynamic Hats (accented on downbeats, loose velocity)
-            if(m1 % 2 === 0) seqHat[i] = 0.6 + rng()*0.2;
-            else if(rng() > 0.3) seqHat[i] = 0.2 + rng()*0.2;
-
-            // Ghost kicks/snares
-            if(!seqKick[i] && !seqSnare[i] && rng() > 0.9) {
-                if(rng()>0.5) seqKick[i] = 0.3; else seqSnare[i] = 0.2;
+            if(currentDrumType === 1) { // Boom Bap
+                if([0, 10].includes(m1)) seqKick[i] = 1;
+                if([4, 12].includes(m1)) seqSnare[i] = 1;
+                if(m1 % 2 === 0) seqHat[i] = 0.5 + rng()*0.3;
+            } 
+            else if(currentDrumType === 2) { // Minimal
+                if(m1 === 0) seqKick[i] = 1;
+                if(m1 === 8) seqSnare[i] = 0.8;
+                if(m1 % 4 === 2 && rng()>0.5) seqHat[i] = 0.4;
             }
-        }
-
-        // Chords (Generate 4 bar progression)
-        let prog = [];
-        for(let i=0; i<4; i++) {
-            // Pick a random chord index
-            prog.push(Math.floor(rng() * chordsList.length));
-        }
-
-        for (let bar = 0; bar < loopBars; bar++) {
-            let chordIdx = prog[bar % 4];
-            let notes = chordsList[chordIdx];
+            else if(currentDrumType === 3) { // Busy
+                if([0, 7, 10].includes(m1)) seqKick[i] = 1;
+                if([4, 12].includes(m1)) seqSnare[i] = 1;
+                seqHat[i] = 0.4 + rng()*0.4; // 16ths
+            }
+            else if(currentDrumType === 4) { // Heavy
+                if([0, 8, 9].includes(m1)) seqKick[i] = 1.2;
+                if([4, 12].includes(m1)) seqSnare[i] = 1.2;
+                if(m1 % 4 === 0) seqHat[i] = 0.7;
+            }
             
-            // Lay down chord on beat 1, maybe syncopate
-            let push = rng() > 0.7 ? -2 : 0; // Push 8th note early occasionally
-            let step = bar * 16 + push;
-            if(step >= 0) seqChords[step] = {idx: chordIdx, notes: notes};
+            // Random Ghosts
+            if(!seqKick[i] && !seqSnare[i] && rng()>0.92) seqKick[i] = 0.3;
+        }
 
-            // Procedural Melody matching the chord
+        // Chords & Melody Generation
+        // Pick a chord progression from active Tab
+        let prog = [
+            chordBanks[activeTab][Math.floor(rng()*6)].v,
+            chordBanks[activeTab][Math.floor(rng()*6)].v,
+            chordBanks[activeTab][Math.floor(rng()*6)].v,
+            chordBanks[activeTab][Math.floor(rng()*6)].v
+        ];
+
+        for(let bar=0; bar<16; bar++) {
+            let chord = prog[bar % 4];
+            
+            // Drop chord on beat 1
+            if(rng() > 0.1) seqChords[bar * 16] = chord;
+
+            // Generate Melody based on Type
             for(let s=0; s<16; s++) {
-                if(rng() > 0.85) { // Sparse melody
-                    let notePool = cMinorPentatonic.concat(notes);
-                    let note = notePool[Math.floor(rng() * notePool.length)];
-                    seqMelody[bar * 16 + s] = note + (rng()>0.5 ? 12 : 0); // Occasional octave up
+                let step = bar * 16 + s;
+                let cNotes = chord.map(n => n % 12); // Get pitch classes
+                let root = chord[0] + 12; // Octave up
+                
+                if(currentMelodyType === 1) { // Sparse
+                    if(rng() > 0.9) seqMelody[step] = chord[Math.floor(rng()*chord.length)] + 12;
+                }
+                else if(currentMelodyType === 2) { // Arps
+                    if(s % 2 === 0 && rng()>0.2) seqMelody[step] = chord[(s/2) % chord.length] + 12;
+                }
+                else if(currentMelodyType === 3) { // Licks (syncopated)
+                    if([3,6,9,14].includes(s) && rng()>0.3) seqMelody[step] = chord[Math.floor(rng()*chord.length)] + 12;
+                }
+                else if(currentMelodyType === 4) { // Dreamy (mostly long whole notes)
+                    if(s === 0) seqMelody[step] = chord[chord.length-1] + 12; // Play top note
                 }
             }
         }
     }
 
-    // --- Interactive "Machine" Controls ---
-    function triggerChord(idx) {
-        if(!audioCtx) initAudio();
-        activeChordIdx = idx;
-        let notes = chordsList[idx];
+    // --- Audio System ---
+    function initAudio() {
+        if(audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Play immediately (as a plucked, active sound)
-        playChord(audioCtx.currentTime, notes, true);
+        masterGain = audioCtx.createGain(); masterGain.gain.value = 0.7;
         
-        // Override the procedural chord for the next bar, OR current bar if early enough
-        let bar = Math.floor(currentStep / 16);
-        let barStep = currentStep % 16;
-        let targetBar = (barStep > 8) ? (bar + 1) % loopBars : bar;
-        
-        // Clear any existing chords in that bar
-        for(let i=0; i<16; i++) seqChords[targetBar * 16 + i] = null;
-        // Inject the new chord
-        seqChords[targetBar * 16] = {idx: idx, notes: notes};
+        // Lo-Fi FX Chain
+        tapeDelay = audioCtx.createDelay(); tapeDelay.delayTime.value = 0.005;
+        let lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.2;
+        lfoGain = audioCtx.createGain(); 
+        lfo.connect(lfoGain); lfoGain.connect(tapeDelay.delayTime); lfo.start();
 
-        updatePadUI();
+        lowpass = audioCtx.createBiquadFilter(); lowpass.type = 'lowpass';
+
+        masterGain.connect(tapeDelay); tapeDelay.connect(lowpass); lowpass.connect(audioCtx.destination);
+
+        // Noise
+        noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
+        let out = noiseBuffer.getChannelData(0);
+        for(let i=0; i<audioCtx.sampleRate; i++) out[i] = Math.random()*2-1;
+        
+        let noiseSrc = audioCtx.createBufferSource(); noiseSrc.buffer = noiseBuffer; noiseSrc.loop = true;
+        let nFilter = audioCtx.createBiquadFilter(); nFilter.type = 'bandpass'; nFilter.frequency.value = 2500;
+        crackleGain = audioCtx.createGain();
+        noiseSrc.connect(nFilter); nFilter.connect(crackleGain); crackleGain.connect(masterGain);
+        noiseSrc.start();
+
+        // Trigger knob updates to set initial audio params
+        handleKnobChange('knob-dust', 60);
+        handleKnobChange('knob-wobble', 40);
     }
 
-    function triggerRiff(state) {
-        autoRiffActive = state;
+    // Synths
+    function playKick(t, v) {
+        let o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.frequency.setValueAtTime(currentDrumType===4 ? 100 : 150, t);
+        o.frequency.exponentialRampToValueAtTime(0.01, t+0.5);
+        g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.5);
+        o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.5);
+    }
+    function playSnare(t, v) {
+        let o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.frequency.setValueAtTime(200, t); g.gain.setValueAtTime(v*0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.2);
+        o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.2);
+        
+        let n = audioCtx.createBufferSource(); n.buffer = noiseBuffer;
+        let ng = audioCtx.createGain(); ng.gain.setValueAtTime(v*0.7, t); ng.gain.exponentialRampToValueAtTime(0.001, t+0.3);
+        n.connect(ng); ng.connect(masterGain); n.start(t); n.stop(t+0.3);
+    }
+    function playHat(t, v) {
+        let n = audioCtx.createBufferSource(); n.buffer = noiseBuffer;
+        let f = audioCtx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6000;
+        let g = audioCtx.createGain(); g.gain.setValueAtTime(v*0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t+0.1);
+        n.connect(f); f.connect(g); g.connect(masterGain); n.start(t); n.stop(t+0.1);
     }
 
-    function triggerDrop(state) {
-        beatDropActive = state;
-    }
-
-    function updatePadUI() {
-        document.querySelectorAll('.pad.chord').forEach((btn, i) => {
-            if(i === activeChordIdx) btn.classList.add('active');
-            else btn.classList.remove('active');
+    function playSynthChord(t, notes, isPluck) {
+        notes.forEach(note => {
+            let o = audioCtx.createOscillator(), g = audioCtx.createGain();
+            o.type = 'triangle'; o.frequency.value = midiToFreq(note);
+            g.gain.setValueAtTime(0, t);
+            if(isPluck) { g.gain.linearRampToValueAtTime(0.15, t+0.05); g.gain.exponentialRampToValueAtTime(0.001, t+1.5); }
+            else { g.gain.linearRampToValueAtTime(0.1, t+0.1); g.gain.exponentialRampToValueAtTime(0.001, t+3); }
+            o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+3);
         });
     }
 
-    // --- Sequencer Engine ---
+    function playSynthMelody(t, note) {
+        let o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = 'sine'; o.frequency.value = midiToFreq(note);
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.15, t+0.05);
+        let length = currentMelodyType === 4 ? 2.0 : 0.5; // Dreamy is longer
+        g.gain.exponentialRampToValueAtTime(0.001, t+length);
+        o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+length);
+    }
+
+    // Scheduler
     function scheduleStep(step, time) {
-        let playTime = time;
-        // Swing (delay odd 16ths)
-        if (step % 2 !== 0) playTime += swing;
+        let playTime = time + (step % 2 !== 0 ? 0.04 : 0); // Swing
 
-        // --- Live Overrides & Generation ---
-        
-        // 1. Maintain active chord state visually
-        if (seqChords[step]) {
-            activeChordIdx = seqChords[step].idx;
-            updatePadUI();
-            playChord(playTime, seqChords[step].notes, false);
+        // Drums
+        if(seqKick[step]) playKick(playTime, seqKick[step]);
+        if(seqSnare[step]) playSnare(playTime, seqSnare[step]);
+        if(seqHat[step]) playHat(playTime, seqHat[step]);
+
+        // Chords (Override if holding pad)
+        if(activeChordOverride && step % 4 === 0) {
+            // Pulse the held chord
+            playSynthChord(playTime, activeChordOverride, true);
+        } else if(!activeChordOverride && seqChords[step]) {
+            playSynthChord(playTime, seqChords[step], false);
         }
 
-        // 2. Play Drums (unless Drop is active)
-        if (!beatDropActive) {
-            if (seqKick[step]) playKick(playTime, seqKick[step]);
-            if (seqSnare[step]) playSnare(playTime, seqSnare[step]);
-            if (seqHat[step]) playHat(playTime, seqHat[step]);
-        }
-
-        // 3. Play Melody or Auto-Riff
-        if (autoRiffActive) {
-            // Generate dense 16th/8th note run based on active chord
-            if (step % 2 === 0 || Math.random() > 0.5) {
-                let pool = activeChordIdx !== null ? chordsList[activeChordIdx] : cMinorPentatonic;
-                let note = pool[Math.floor(Math.random() * pool.length)] + 12; // High octave
-                playMelody(playTime, note);
+        // Melody
+        if(seqMelody[step]) {
+            let note = seqMelody[step];
+            if(activeChordOverride) {
+                // Snap melody to live chord
+                let cNotes = activeChordOverride;
+                note = cNotes.reduce((p, c) => Math.abs((c%12)-(note%12)) < Math.abs((p%12)-(note%12)) ? c : p) + 12;
             }
-        } else {
-            // Play procedural sequence melody, but clamp to active chord if user overrode it
-            if (seqMelody[step]) {
-                let note = seqMelody[step];
-                // Simple diatonic snapping if we have an active chord
-                if (activeChordIdx !== null) {
-                    let chordNotes = chordsList[activeChordIdx];
-                    // Find closest note in current chord
-                    note = chordNotes.reduce((prev, curr) => 
-                        Math.abs((curr%12) - (note%12)) < Math.abs((prev%12) - (note%12)) ? curr : prev
-                    );
-                    note += 12; // Keep in melody range
-                }
-                playMelody(playTime, note);
-            }
+            playSynthMelody(playTime, note);
         }
-
-        // Visual Playhead
-        setTimeout(() => {
-            let pct = (step / totalSteps) * 100;
-            document.getElementById('progressFill').style.width = pct + '%';
-        }, (playTime - audioCtx.currentTime) * 1000);
     }
 
     function scheduler() {
         while (nextNoteTime < audioCtx.currentTime + 0.1) {
             scheduleStep(currentStep, nextNoteTime);
             nextNoteTime += (60 / bpm) / 4;
-            currentStep++;
-            if (currentStep >= totalSteps) currentStep = 0;
+            currentStep = (currentStep + 1) % totalSteps;
         }
         timerID = setTimeout(scheduler, 25);
     }
 
     function togglePlay() {
-        initAudio(); 
-        
+        initAudio();
         const btn = document.getElementById('playBtn');
-        
         if (isPlaying) {
-            isPlaying = false;
-            clearTimeout(timerID);
+            isPlaying = false; clearTimeout(timerID);
             if(audioCtx.state === 'running') audioCtx.suspend();
-            btn.innerHTML = "► PLAY";
-            btn.classList.remove('playing');
+            btn.innerHTML = "► PLAY"; btn.classList.remove('playing');
         } else {
-            if(!seqKick.some(x=>x>0)) generateProcedural(); // First time generation
-            isPlaying = true;
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            
-            currentStep = 0;
-            nextNoteTime = audioCtx.currentTime + 0.05;
+            generateProcedural(); // Build initial sequence
+            isPlaying = true; if(audioCtx.state === 'suspended') audioCtx.resume();
+            currentStep = 0; nextNoteTime = audioCtx.currentTime + 0.05;
             scheduler();
-            
-            btn.innerHTML = "◼ STOP";
-            btn.classList.add('playing');
+            btn.innerHTML = "◼ STOP"; btn.classList.add('playing');
         }
     }
 
-    // Initialize random seed on load
-    randomizeSeed();
+    // Init
+    initKnobs();
+    setTab(0);
+    parseSeedFromInput(); // Sets UI based on default value
 </script>
 
 </body>
